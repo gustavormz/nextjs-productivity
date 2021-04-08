@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import {
     useState,
     useEffect
@@ -8,27 +9,46 @@ import LayoutBase from '../src/components/layout/base';
 import Page from '../src/pages/home/page';
 import Static from '../src/pages/home/static';
 
-const Home = () => {
-    const [task, setTask] = useState(undefined);
+const Home = ({
+    endpoint
+}) => {
+    const [tasks, setTasks] = useState(undefined);
     
     useEffect(() => {
-        async function getAllTask () {
-
+        async function getAllTasks () {
+            const response = await (await fetch(endpoint)).json();
+            console.log(response);
+            const taskToSet = response.error ? [] : response.data.Items;
+            setTasks(taskToSet);
         }
-
-        getAllTask();
+        getAllTasks();
     }, []);
 
     return (
         <LayoutBase>
             <Head />
-            { task ? (
-                <Page />
+            { tasks ? (
+                <Page
+                    tasks={tasks}/>
             ) : (
                 <Static />
             ) }
         </LayoutBase>
     );
+};
+
+export const getServerSideProps = () => {
+    const endpoint = `/api/task`;
+
+    return {
+        props: {
+            endpoint
+        }
+    };
+};
+
+Home.propTypes = {
+    endpoint: PropTypes.string
 };
 
 export default Home;
