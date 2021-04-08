@@ -1,3 +1,4 @@
+import initialTasks from './tasks.json';
 import db from '../../../lib/db';
 import validation from '../../../lib/validation';
 import utils from '../../../lib/utils';
@@ -7,7 +8,7 @@ const handler = async ({
     body
 }, res) => {
     let statusResponseCode = 403; // forbbiden as default status code
-    let response = undefined;
+    let response = ``;
 
     try {
         if (method === 'GET') { // get all task
@@ -15,7 +16,12 @@ const handler = async ({
                 TableName: process.env.REACT_APP_DYNAMODB_TABLE_NAME
             };
 
-            response = await db.scan(params).promise();
+            const dynamoResponse = await db.scan(params).promise();
+            response = utils.constructSuccessResponse({
+                type: `RESOURCE_FOUND`,
+                data: dynamoResponse
+            });
+            statusResponseCode = 200;
         } else if (method === 'POST') { //create task
             //validate request body
             const requestBodyValidated = validation.validateCreate(body);
@@ -26,12 +32,14 @@ const handler = async ({
             };
 
             await db.put(params).promise();
+            response = utils.constructCustomErrorByType({
+                type: `RESOURCE_CREATED`
+            });
+            statusResponseCode = 201;
         }
     } catch (e) {
-        console.error(`ERROR IN PETITION`, e);
         response = utils.constructErrorResponse(e);
     }
-
     res.status(statusResponseCode).json(response);
 };
 
