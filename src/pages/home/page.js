@@ -12,7 +12,11 @@ import SimpleWrapperText from '../../components/paper/simpleWrapperText';
 import ButtonBase from '../../components/ui/button/base';
 
 const HomePage = ({
-    tasks
+    tasks,
+    handleNewTaskButtonClick,
+    durations,
+    handleEditClick,
+    handleDeleteClick
 }) => (
     <Grid container spacing={4}>
         <Grid item xs={12}/>
@@ -28,7 +32,7 @@ const HomePage = ({
             container
             alignItems={'flex-end'}
             item xs={12} md={5}>
-            <ButtonSecondary>
+            <ButtonSecondary onClick={handleNewTaskButtonClick}>
                 Agregar Nueva Tarea
             </ButtonSecondary>
         </Grid>
@@ -39,13 +43,11 @@ const HomePage = ({
             <Grid item xs={12}>
                 { tasks.map(task => (
                     <CardTask
+                        handleDeleteClick={handleDeleteClick}
+                        handleEditClick={handleEditClick}
+                        durations={durations}
                         key={task.timestamp}
-                        description={task.description}
-                        duration={task.duration}
-                        index={task.index}
-                        status={task.status}
-                        timestamp={task.timestamp}
-                        title={task.title}/>
+                        task={task}/>
                 )) }
             </Grid>
         ) : (
@@ -66,7 +68,11 @@ const HomePage = ({
 );
 
 HomePage.propTypes = {
-    tasks: PropTypes.array
+    tasks: PropTypes.array,
+    durations: PropTypes.array,
+    handleNewTaskButtonClick: PropTypes.func,
+    handleEditClick: PropTypes.func,
+    handleDeleteClick: PropTypes.func
 };
 
 export default HomePage;
