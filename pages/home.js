@@ -262,7 +262,12 @@ const Home = ({
         });
     }
 
-    function onDragEnd(result) {
+    async function onDragEnd (result) {
+        setState({
+            ...state,
+            isRequesting: true
+        });
+
         // dropped outside the list
         if (!result.destination) {
             return;
@@ -273,6 +278,17 @@ const Home = ({
             result.destination.index
         );
         setTasks(tasksOrdered);
+        
+        // save current order list
+        await fetch(`${baseApiUrl}/list`, {
+            method: 'PUT',
+            body: JSON.stringify(tasksOrdered)
+        });
+
+        setState({
+            ...state,
+            isRequesting: false
+        });
     }
 
     return (

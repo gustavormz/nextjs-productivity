@@ -43,6 +43,29 @@ const getTaskByParams = async _params => {
     }
 };
 
+const getByKey = async Key => {
+    try {
+        const params = {
+            TableName: process.env.REACT_APP_DYNAMODB_TABLE_NAME,
+            Key
+        };
+
+        return await db.get(params).promise();
+    } catch (e) {
+        console.error(`Error getting tasks by params`, e);
+        utils.constructCustomErrorByType('GETTING_TASK');
+    }
+};
+
+const getOrderedList = (orderedList, tasksArray) => {
+    const orderedListToObject = orderedList.reduce((tasksObject, task) => {
+        tasksObject[task.timestamp] = {
+            ...task
+        };
+        return tasksObject;
+    }, {});
+};
+
 const handler = async ({
     method,
     body,
@@ -53,28 +76,30 @@ const handler = async ({
 
     try {
         if (method === 'GET') { // get all task
-            const KeyConditionExpression = "#type = :type";
+            /*const KeyConditionExpression = "#type = :type";
             const ExpressionAttributeNames = {
                 "#type": "type"
             };
             const ExpressionAttributeValues = {
                 ":type": "task"
-            };
+            };*/
 
-            let dynamoResponse = await getTaskByParams({
-                KeyConditionExpression,
-                ExpressionAttributeNames,
-                ExpressionAttributeValues
-            });
+            const Key = {
+                type: `list`,
+                timestamp: 1
+            };
+            let dynamoResponse = await getByKey(Key);
+
+            console.log(dynamoResponse);
 
             //  TODO: add random task if doesnt exist durations on database
-            if (!dynamoResponse.Items || dynamoResponse.Items.length === 0) {
+            if (!dynamoResponse.Item || dynamoResponse.Item.list.length === 0) {
                 dynamoResponse = [];       
             }
 
             response = utils.constructSuccessResponse({
                 type: `TASKS_FOUND`,
-                data: dynamoResponse.Items || dynamoResponse
+                data: dynamoResponse.Item.list || dynamoResponse
             });
             statusResponseCode = 200;
         } else if (method === 'POST') { // create task
