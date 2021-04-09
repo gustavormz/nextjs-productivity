@@ -1,39 +1,90 @@
 import initialTasks from './tasks.json';
 import db from '../../../lib/db';
-import validation from '../../../lib/validation';
+import validation from '../../../lib/validation/task';
 import utils from '../../../lib/utils';
+
+const formatTaskCreateData = data => {
+    const timestamp = data.timestamp || Date.now();
+    return {
+        ...data,
+        timestamp,
+        type: `task`,
+        status: `PENDING`
+    };
+};
+
+const createTask = async task => {
+    try {
+        const requestBodyValidated = validation.validateCreate(formatTaskCreateData(task));
+
+        const params = {
+            TableName: process.env.REACT_APP_DYNAMODB_TABLE_NAME,
+            Item: requestBodyValidated
+        };
+
+        await db.put(params).promise();
+        return requestBodyValidated;
+    } catch (e) {
+        console.error(`Error creating task`, e);
+        utils.constructCustomErrorByType('TASK_CREATE');
+    }
+};
+
+const getTaskByParams = async _params => {
+    try {
+        const params = {
+            TableName: process.env.REACT_APP_DYNAMODB_TABLE_NAME,
+            ..._params
+        };
+
+        return await db.query(params).promise();
+    } catch (e) {
+        console.error(`Error getting tasks by params`, e);
+        utils.constructCustomErrorByType('GETTING_TASK');
+    }
+};
 
 const handler = async ({
     method,
-    body
+    body,
+    query
 }, res) => {
     let statusResponseCode = 403; // forbbiden as default status code
     let response = ``;
 
     try {
         if (method === 'GET') { // get all task
-            const params = {
-                TableName: process.env.REACT_APP_DYNAMODB_TABLE_NAME
+            const KeyConditionExpression = "#type = :type";
+            const ExpressionAttributeNames = {
+                "#type": "type"
+            };
+            const ExpressionAttributeValues = {
+                ":type": "task"
             };
 
-            const dynamoResponse = await db.scan(params).promise();
+            let dynamoResponse = await getTaskByParams({
+                KeyConditionExpression,
+                ExpressionAttributeNames,
+                ExpressionAttributeValues
+            });
+
+            //  TODO: add random task if doesnt exist durations on database
+            if (!dynamoResponse.Items || dynamoResponse.Items.length === 0) {
+                dynamoResponse = [];       
+            }
+
             response = utils.constructSuccessResponse({
-                type: `RESOURCE_FOUND`,
-                data: dynamoResponse
+                type: `TASKS_FOUND`,
+                data: dynamoResponse.Items || dynamoResponse
             });
             statusResponseCode = 200;
-        } else if (method === 'POST') { //create task
-            //validate request body
-            const requestBodyValidated = validation.validateCreate(body);
+        } else if (method === 'POST') { // create task
+            const bodyObject = JSON.parse(body);
+            const newTask = await createTask(bodyObject);
 
-            const params = {
-                TableName: process.env.REACT_APP_DYNAMODB_TABLE_NAME,
-                Item: requestBodyValidated
-            };
-
-            await db.put(params).promise();
-            response = utils.constructCustomErrorByType({
-                type: `RESOURCE_CREATED`
+            response = utils.constructSuccessResponse({
+                type: `TASK_CREATED`,
+                data: newTask
             });
             statusResponseCode = 201;
         }
