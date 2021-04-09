@@ -3,7 +3,8 @@ import {
     Grid,
     Hidden,
     RootRef,
-    List
+    List,
+    withStyles
 } from '@material-ui/core';
 import {
     DragDropContext,
@@ -17,6 +18,7 @@ import DividerBase from '../../components/divider/base';
 import SimpleWrapperText from '../../components/paper/simpleWrapperText';
 import ButtonBase from '../../components/ui/button/base';
 import ListItemTask from '../../components/list/item/task';
+import TimekeeperBase from '../../components/timekeeper/base';
 
 const getItemStyle = (isDragging, draggableStyle) => ({
     ...draggableStyle,
@@ -27,13 +29,24 @@ const getItemStyle = (isDragging, draggableStyle) => ({
     })
 });
 
+const gridTimekeeperStyles = theme => ({
+    container: {
+        [theme.breakpoints.down('md')]: {
+            justifyContent: `center`
+        }
+    }
+});
+
+const GridTimekeeperContainer = withStyles(gridTimekeeperStyles)(Grid);
+
 const HomePage = ({
     tasks,
     handleNewTaskButtonClick,
     durations,
     handleEditClick,
     handleDeleteClick,
-    onDragEnd
+    onDragEnd,
+    handleTimekeeperFinish
 }) => (
     <Grid container spacing={4}>
         <Grid item xs={12}/>
@@ -42,9 +55,15 @@ const HomePage = ({
                 Home
             </TypographyTitle>
         </Grid>
-        <Hidden smDown>
-            <Grid item md={7}/>
-        </Hidden>
+        <GridTimekeeperContainer
+            container
+            item
+            xs={12}
+            md={7}>
+            <TimekeeperBase
+                handleFinishCount={handleTimekeeperFinish}
+                initialTime={10}/>
+        </GridTimekeeperContainer>
         <Grid
             container
             alignItems={'flex-end'}
@@ -113,7 +132,8 @@ HomePage.propTypes = {
     handleNewTaskButtonClick: PropTypes.func,
     handleEditClick: PropTypes.func,
     handleDeleteClick: PropTypes.func,
-    onDragEnd: PropTypes.func
+    onDragEnd: PropTypes.func,
+    handleTimekeeperFinish: PropTypes.func
 };
 
 export default HomePage;

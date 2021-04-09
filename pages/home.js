@@ -311,6 +311,10 @@ const Home = ({
         });
     }
 
+    function handleTimekeeperFinish (seconds) {
+        console.log(`finish`);
+    }
+
     return (
         <LayoutBase maxWidth={'md'}>
             <Head />
@@ -341,6 +345,7 @@ const Home = ({
                 open={state.isDialogTaskEditOpen}/>
             { tasks ? (
                 <Page
+                    handleTimekeeperFinish={handleTimekeeperFinish}
                     onDragEnd={onDragEnd}
                     handleDeleteClick={handleDeleteClick}
                     durations={durations}
