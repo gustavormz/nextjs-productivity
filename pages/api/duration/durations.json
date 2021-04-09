@@ -1,0 +1,25 @@
+[
+    {
+        "type": "duration",
+        "timestamp": 1617907666000,
+        "label": "Corta",
+        "value": 1617907666000,
+        "seconds": 0,
+        "minutes": 30
+    },
+    {
+        "type": "duration",
+        "timestamp": 1617907722000,
+        "label": "Media",
+        "value": 1617907722000,
+        "seconds": 0,
+        "minutes": 45
+    }, {
+        "type": "duration",
+        "timestamp": 1617907768000,
+        "label": "Larga",
+        "value": 1617907768000,
+        "seconds": 0,
+        "minutes": 60
+    }
+]
