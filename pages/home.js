@@ -38,6 +38,13 @@ const updateTaskByIdFromArray = (_tasks, idTask, newData) => {
     return tasks;
 };
 
+const orderTasks = (list, startIndex, endIndex) => {
+    const result = Array.from(list);
+    const [removed] = result.splice(startIndex, 1);
+    result.splice(endIndex, 0, removed);
+    return result;
+};
+
 const Home = ({
     baseApiUrl
 }) => {
@@ -255,8 +262,21 @@ const Home = ({
         });
     }
 
+    function onDragEnd(result) {
+        // dropped outside the list
+        if (!result.destination) {
+            return;
+        }
+        const tasksOrdered = orderTasks(
+            tasks,
+            result.source.index,
+            result.destination.index
+        );
+        setTasks(tasksOrdered);
+    }
+
     return (
-        <LayoutBase>
+        <LayoutBase maxWidth={'md'}>
             <Head />
             { state.deleteTask && (
                 <DialogTaskDeleteConfirm
@@ -285,6 +305,7 @@ const Home = ({
                 open={state.isDialogTaskEditOpen}/>
             { tasks ? (
                 <Page
+                    onDragEnd={onDragEnd}
                     handleDeleteClick={handleDeleteClick}
                     durations={durations}
                     handleEditClick={handleEditClick}

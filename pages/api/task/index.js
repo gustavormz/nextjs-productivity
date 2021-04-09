@@ -1,4 +1,3 @@
-import initialTasks from './tasks.json';
 import db from '../../../lib/db';
 import validation from '../../../lib/validation/task';
 import utils from '../../../lib/utils';
