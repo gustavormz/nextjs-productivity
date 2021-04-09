@@ -45,6 +45,19 @@ const orderTasks = (list, startIndex, endIndex) => {
     return result;
 };
 
+const updateCurrentOrderList = async orderedList => {
+    try {
+        // save current order list
+        return await fetch(`${baseApiUrl}/list`, {
+            method: 'PUT',
+            body: JSON.stringify(orderedList)
+        });
+    } catch (e) {
+        console.error(`Error updating ordered list`, e);
+        throw e;
+    }
+};
+
 const Home = ({
     baseApiUrl
 }) => {
@@ -134,6 +147,9 @@ const Home = ({
                     const tasksCopy = [...tasks];
                     tasksCopy.push(response.data);
                     setTasks(tasksCopy);
+
+                    // save current order list
+                    await updateCurrentOrderList(tasksCopy);
                 }
                 isError = response.error;
                 dialogResponseType = response.errorType || response.successType
@@ -148,6 +164,9 @@ const Home = ({
                 const tasksCopy = [...tasks];
                 tasksCopy.push(response.data);
                 setTasks(tasksCopy);
+
+                // save current order list
+                await updateCurrentOrderList(tasksCopy);
             }
 
             isError = response.error;
@@ -202,12 +221,13 @@ const Home = ({
             body: JSON.stringify(values)
         })).json();
 
-        console.log(response);
-
         // if there isnt error update the item on the array
         if (!response.error) {
             const newTasks = updateTaskByIdFromArray(tasks, values.timestamp, values);
             setTasks(newTasks);
+            
+            // save current order list
+            await updateCurrentOrderList(newTasks);
         }
 
         setState({
@@ -244,6 +264,9 @@ const Home = ({
         if (!response.error) {
             const newTasks = removeTaskByIdFromArray(tasks, state.deleteTask.timestamp);
             setTasks(newTasks);
+            
+            // save current order list
+            await updateCurrentOrderList(newTasks);
         }
 
         setState({
@@ -280,10 +303,7 @@ const Home = ({
         setTasks(tasksOrdered);
         
         // save current order list
-        await fetch(`${baseApiUrl}/list`, {
-            method: 'PUT',
-            body: JSON.stringify(tasksOrdered)
-        });
+        await updateCurrentOrderList(tasksOrdered);
 
         setState({
             ...state,
