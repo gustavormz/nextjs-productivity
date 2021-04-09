@@ -15,7 +15,7 @@ import ButtonBase from '../../ui/button/base';
 import ButtonSecondary from '../../ui/button/secondary';
 import DividerBase from '../../divider/base';
 
-const DialogTaskCreate = ({
+const DialogTaskEdit = ({
     open,
     handleClose,
     handleFormSubmit,
@@ -32,7 +32,10 @@ const DialogTaskCreate = ({
         </DialogTitle>
         <DialogContent>
             <Formik
-                initialValues={finalValues || {
+                initialValues={{
+                    ...finalValues,
+                    durations
+                } || {
                     ...initialValues,
                     durations
                 }}
@@ -66,7 +69,7 @@ const DialogTaskCreate = ({
                                 <ButtonBase
                                     disabled={!isValid}
                                     type={'submit'}>
-                                    Crear
+                                    Actualizar
                                 </ButtonBase>
                             </Grid>
                             <Grid item xs={4}>
@@ -83,7 +86,7 @@ const DialogTaskCreate = ({
     </Dialog>
 );
 
-DialogTaskCreate.propTypes = {
+DialogTaskEdit.propTypes = {
     open: PropTypes.bool,
     handleClose: PropTypes.func,
     handleFormSubmit: PropTypes.func,
@@ -92,7 +95,7 @@ DialogTaskCreate.propTypes = {
     durations: PropTypes.array
 };
 
-DialogTaskCreate.defaultProps = {
+DialogTaskEdit.defaultProps = {
     validationSchema: Yup.object({
         title: Yup.string()
             .max(100, `Debe contener máximo 100 caracteres`)
@@ -145,4 +148,4 @@ DialogTaskCreate.defaultProps = {
     }
 };
 
-export default DialogTaskCreate;
+export default DialogTaskEdit;
