@@ -28,7 +28,7 @@ const DialogTaskEdit = ({
         open={open}
         onClose={handleClose}>
         <DialogTitle onClose={handleClose}>
-            Nueva Tarea
+            Editar Tarea
         </DialogTitle>
         <DialogContent>
             <Formik
@@ -54,6 +54,7 @@ const DialogTaskEdit = ({
                         <Grid container spacing={2}>
                             <Grid item xs={12}>
                                 <FormTask
+                                    isTitleEdit={false}
                                     isStatusEdit={false}
                                     errors={errors}
                                     handleBlur={handleBlur}
@@ -99,7 +100,7 @@ DialogTaskEdit.defaultProps = {
     validationSchema: Yup.object({
         title: Yup.string()
             .max(100, `Debe contener máximo 100 caracteres`)
-            .required(`El título es requerido`),
+            ,
         description: Yup.string()
             .max(255, `Debe contener máximo 255 caracteres`)
             .required(`La descripción es requerida`),
@@ -109,11 +110,14 @@ DialogTaskEdit.defaultProps = {
         minutes: Yup.number()
             .max(120, `El tiempo máximo en minutos es de 120`)
             .min(1, `El tiempo mínimo en minutos es de 1`)
-            .when('durations', (durations, schema) => {
+            .when(['durations', 'duration'], (durations, duration, schema) => {
                 return schema.test(
                     ``,
                     `Elige un valor distinto a los ya existentes`,
                     value => {
+                        if (duration !== 'custom') {
+                            return true;
+                        }
                         for (let duration of durations) {
                             if (value === duration.minutes) {
                                 return false;
@@ -128,10 +132,10 @@ DialogTaskEdit.defaultProps = {
                     schema.max(120, `El tiempo máximo en minutos es de 120`)
             }).nullable(),
         duration_title: Yup.string()
-            .max(100, `Debe contener máximo 100 caracteres`)
-            .when('duration', {
-                is: true,
-                then: Yup.string().required(`El título es requerido`)
+            .when('duration', (duration, schema) => {
+                if (duration === 'custom') {
+                    return schema.required();
+                }
             })
     }),
     initialValues: {

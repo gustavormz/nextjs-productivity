@@ -125,10 +125,10 @@ DialogTaskCreate.defaultProps = {
                     schema.max(120, `El tiempo máximo en minutos es de 120`)
             }).nullable(),
         duration_title: Yup.string()
-            .max(100, `Debe contener máximo 100 caracteres`)
-            .when('duration', {
-                is: true,
-                then: Yup.string().required(`El título es requerido`)
+            .when('duration', (duration, schema) => {
+                if (duration === 'custom') {
+                    return schema.required();
+                }
             })
     }),
     initialValues: {
