@@ -22,12 +22,13 @@ const FormTaskBase = ({
     handleBlur,
     errors,
     touched,
-    isStatusEdit
+    isStatusEdit,
+    isTitleEdit
 }) => (
     <Grid container spacing={2}>
         <Grid item xs={12}>
             <TextFieldBase
-                disabled={!isEdit}
+                disabled={!isEdit || !isTitleEdit}
                 onChange={handleChange ? handleChange(`title`) : null}
                 onBlur={handleBlur}
                 value={values.title}
@@ -103,14 +104,16 @@ FormTaskBase.propTypes = {
     touched: PropTypes.object,
     setFieldValue: PropTypes.func,
     mapStatus: PropTypes.object,
-    isStatusEdit: PropTypes.bool
+    isStatusEdit: PropTypes.bool,
+    isTitleEdit: PropTypes.bool
 };
 
 FormTaskBase.defaultProps = {
     isEdit: true,
     errors: {},
     touched: {},
-    isStatusEdit: true
+    isStatusEdit: true,
+    isTitleEdit: true
 };
 
 export default FormTaskBase;

@@ -11,12 +11,14 @@ import {
     withStyles
 } from '@material-ui/core';
 import {
-    Edit,
-    Cancel
+    Done,
+    Cancel,
+    PlayCircleFilled
 } from '@material-ui/icons';
 
 import PaperTaskStatus from '../../paper/task/status';
 import ListItemIconTask from '../item/icon/task';
+import ButtonTaskStart from '../../ui/button/task/start';
 
 const styles = theme => ({
     secondaryAction: {
@@ -30,25 +32,24 @@ const styles = theme => ({
 const ListItemStyled = withStyles(styles)(ListItem);
 
 const ListItemTask = ({
+    mapStatus,
+    handleFinishTask,
+    isActive,
     task,
     handleEditClick,
     handleDeleteClick,
+    handleStart,
     durations,
     ...props
 }) => (
-    <ListItemStyled {...props}>
+    <ListItemStyled
+        onClick={() => handleEditClick(task)}
+        {...props}>
         <ListItemIconTask>
-            <Hidden mdDown>
-                <PaperTaskStatus>
-                    <p style={{ margin: 0 }}>
-                        Terminada
-                    </p>
-                </PaperTaskStatus>
-            </Hidden>
             <Hidden mdUp>
                 <Tooltip title={'Estado'}>
                     <Avatar>
-                        T
+                        {mapStatus[task.status][0]}
                     </Avatar>
                 </Tooltip>
             </Hidden>
@@ -70,16 +71,36 @@ const ListItemTask = ({
             )}
             primary={task.title}/>
         <ListItemSecondaryAction>
-            <IconButton
-                onClick={() => handleEditClick(task)}
-                style={{ padding: 4 }}>
-                <Edit />
-            </IconButton>
-            <IconButton
-                onClick={() => handleDeleteClick(task)}
-                style={{ padding: 4 }}>
-                <Cancel />
-            </IconButton>
+            { handleStart && (
+                <Tooltip
+                    title={'Iniciar'}
+                    onClick={() => handleStart(task)}>
+                    <IconButton
+                        style={{ padding: 4 }}>
+                        <PlayCircleFilled />
+                    </IconButton>
+                </Tooltip>
+            ) }
+            { handleFinishTask && (
+                <Tooltip
+                    title={'Finalizar'}
+                    onClick={() => handleFinishTask(task)}>
+                    <IconButton
+                        style={{ padding: 4 }}>
+                        <Done />
+                    </IconButton>
+                </Tooltip>
+            )}
+            { !handleStart && (
+                <Tooltip
+                    title={`Eliminar`}
+                    onClick={() => handleDeleteClick(task)}>
+                    <IconButton
+                        style={{ padding: 4 }}>
+                        <Cancel />
+                    </IconButton>
+                </Tooltip>
+            ) }
         </ListItemSecondaryAction>
     </ListItemStyled>
 );
@@ -97,7 +118,18 @@ ListItemTask.propTypes = {
     }),
     handleEditClick: PropTypes.func,
     handleDeleteClick: PropTypes.func,
-    durations: PropTypes.array
+    durations: PropTypes.array,
+    handleFinishTask: PropTypes.func,
+    isActive: PropTypes.bool,
+    mapStatus: PropTypes.object,
+    handleStart: PropTypes.func
+};
+
+ListItemTask.defaultProps = {
+    mapStatus: {
+        'FINISHED': `Terminada`,
+        'PENDING': `Pendiente`
+    }
 };
 
 export default ListItemTask;
