@@ -19,6 +19,24 @@ import SimpleWrapperText from '../../components/paper/simpleWrapperText';
 import ButtonBase from '../../components/ui/button/base';
 import ListItemTask from '../../components/list/item/task';
 import TimekeeperBase from '../../components/timekeeper/base';
+import TabBase from '../../components/tab/base';
+import TabsBase from '../../components/tabs/base';
+import SelectTaskDefaultDuration from '../../components/ui/select/task/defaultDuration';
+import TabPanelTaskPending from '../../components/tabPanel/task/pending';
+
+const linkTabProps = index => ({
+    id: `nav-tab-${index}`,
+    'aria-controls': `nav-tabpanel-${index}`
+});
+
+const LinkTab = props => (
+    <TabBase
+        { ...props }
+        component={'a'}
+        onClick={event => {
+            event.preventDefault();
+        }}/>
+);
 
 const getItemStyle = (isDragging, draggableStyle) => ({
     ...draggableStyle,
@@ -40,91 +58,40 @@ const gridTimekeeperStyles = theme => ({
 const GridTimekeeperContainer = withStyles(gridTimekeeperStyles)(Grid);
 
 const HomePage = ({
-    tasks,
-    handleNewTaskButtonClick,
-    durations,
-    handleEditClick,
-    handleDeleteClick,
-    onDragEnd,
-    handleTimekeeperFinish
-}) => (
-    <Grid container spacing={4}>
-        <Grid item xs={12}/>
-        <Grid item xs={12}>
-            <TypographyTitle>
-                Home
-            </TypographyTitle>
-        </Grid>
-        <GridTimekeeperContainer
-            container
-            item
-            xs={12}
-            md={7}>
-            <TimekeeperBase
-                handleFinishCount={handleTimekeeperFinish}
-                initialTime={10}/>
-        </GridTimekeeperContainer>
-        <Grid
-            container
-            alignItems={'flex-end'}
-            item xs={12} md={5}>
-            <ButtonSecondary onClick={handleNewTaskButtonClick}>
-                Agregar Nueva Tarea
-            </ButtonSecondary>
-        </Grid>
-        <Grid item xs={12}>
-            <DividerBase />
-        </Grid>
-        { tasks.length > 0 ? (
+    tabActive,
+    handleTabChange
+}) => {
+    return (
+        <Grid container spacing={4}>
+            <Grid item xs={12}/>
             <Grid item xs={12}>
-                
-                <DragDropContext onDragEnd={onDragEnd}>
-                    <Droppable droppableId="droppable">
-                    {(provided, snapshot) => (
-                        <RootRef rootRef={provided.innerRef}>
-                        <List>
-                            {tasks.map((item, index) => (
-                            <Draggable key={item.timestamp} draggableId={String(item.timestamp)} index={index}>
-                                {(provided, snapshot) => (
-                                <ListItemTask
-                                    handleDeleteClick={handleDeleteClick}
-                                    handleEditClick={handleEditClick}
-                                    task={item}
-                                    ContainerComponent="li"
-                                    ContainerProps={{ ref: provided.innerRef }}
-                                    {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
-                                    style={getItemStyle(
-                                    snapshot.isDragging,
-                                    provided.draggableProps.style
-                                    )} />
-                                )}
-                            </Draggable>
-                            ))}
-                            {provided.placeholder}
-                        </List>
-                        </RootRef>
-                    )}
-                    </Droppable>
-                </DragDropContext>
-
+                <TypographyTitle>
+                    Home
+                </TypographyTitle>
             </Grid>
-        ) : (
-            <>
-                <Grid item xs={12}>
-                    <SimpleWrapperText>
-                        Aún no tienes tareas
-                    </SimpleWrapperText>
-                </Grid>
-                <Grid item xs={12}>
-                    <ButtonBase>
-                        Agregar 50 tareas
-                    </ButtonBase>
-                </Grid>
-            </>
-        ) }
-    </Grid>
-);
+            <Grid item xs={12}>
+                <TabsBase
+                    onChange={handleTabChange}
+                    value={tabActive}
+                    centered>
+                    <LinkTab
+                        { ...linkTabProps (0) }
+                        href="/pending" 
+                        label={`Pendientes`} />
+                    <LinkTab
+                        { ...linkTabProps (1) }
+                        href="/finished"
+                        label={`Finalizadas`}/>
+                </TabsBase>
+            </Grid>
+            <TabPanelTaskPending
+                role="tabpanel"
+                hidden={tabActive !== 0}
+                id={`nav-tabpanel-0`}
+                aria-labelledby={`nav-tab-0`}/>
+        </Grid>
+    ); 
+};
 
 HomePage.propTypes = {
     tasks: PropTypes.array,
@@ -133,7 +100,17 @@ HomePage.propTypes = {
     handleEditClick: PropTypes.func,
     handleDeleteClick: PropTypes.func,
     onDragEnd: PropTypes.func,
-    handleTimekeeperFinish: PropTypes.func
+    handleTimekeeperFinish: PropTypes.func,
+    handleFinishClick: PropTypes.func,
+    tabActive: PropTypes.number,
+    handleTabChange: PropTypes.func,
+    selectTaskDuration: PropTypes.string,
+    handleSelectTaskDuration: PropTypes.func,
+    baseApiUrl: PropTypes.string
+};
+
+HomePage.defaultProps = {
+    selectTaskDuration: `ALL`
 };
 
 export default HomePage;
