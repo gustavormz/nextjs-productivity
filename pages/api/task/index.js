@@ -29,7 +29,7 @@ const createTask = async task => {
     }
 };
 
-const getTaskByParams = async _params => {
+const getTasksByParams = async _params => {
     try {
         const params = {
             TableName: process.env.REACT_APP_DYNAMODB_TABLE_NAME,
@@ -57,13 +57,51 @@ const getByKey = async Key => {
     }
 };
 
-const getOrderedList = (orderedList, tasksArray) => {
-    const orderedListToObject = orderedList.reduce((tasksObject, task) => {
-        tasksObject[task.timestamp] = {
-            ...task
+const getOrderedTask = tasks => tasks.reduce((tasksObject, task) => {
+    const taskDurationSeconds = task.minutes * 60 + (task.seconds ? task.seconds : 0);
+
+    if (taskDurationSeconds <= 60 * 30) { //short
+        tasksObject.pendingShort.push(task);
+    } else if (taskDurationSeconds <= 60 * 60) { // medium
+        tasksObject.pendingMedium.push(task);
+    } else { // long
+        tasksObject.pendingLong.push(task);
+    }
+
+    return tasksObject;
+}, {
+    pendingLong: [],
+    pendingMedium: [],
+    pendingShort: []
+});
+
+const updateTaskOrderList = async orderedList => {
+    try {
+        const Key = {
+            type: `list`,
+            timestamp: 1
         };
-        return tasksObject;
-    }, {});
+        const UpdateExpression = `set #list = :list`;
+        const ExpressionAttributeNames = {
+            '#list': 'list'
+        };
+        const ExpressionAttributeValues = {
+            ':list': orderedList
+        };
+
+        const params = {
+            TableName: process.env.REACT_APP_DYNAMODB_TABLE_NAME,
+            Key,
+            UpdateExpression,
+            ExpressionAttributeNames,
+            ExpressionAttributeValues
+        };
+
+        return await db.update(params).promise();
+    } catch (e) {
+        console.error(`Error updating task list`, e);
+        utils.constructCustomErrorByType('LIST_UPDATE');
+    }
 };
 
 const handler = async ({
@@ -75,40 +113,64 @@ const handler = async ({
     let response = ``;
 
     try {
-        if (method === 'GET') { // get all task
-            /*const KeyConditionExpression = "#type = :type";
-            const ExpressionAttributeNames = {
-                "#type": "type"
-            };
-            const ExpressionAttributeValues = {
-                ":type": "task"
-            };*/
+        if (method === 'GET') {
+            if (query.hasOwnProperty('status')) {
+                const KeyConditionExpression = "#type = :type";
+                const FilterExpression = `#status = :status`;
+                const ExpressionAttributeNames = {
+                    "#type": "type",
+                    '#status': "status"
+                };
+                const ExpressionAttributeValues = {
+                    ":type": "task",
+                    ':status': query.status
+                };
 
-            const Key = {
-                type: `list`,
-                timestamp: 1
-            };
-            let dynamoResponse = await getByKey(Key);
+                const tasksByStatusResponse = await getTasksByParams({
+                    KeyConditionExpression,
+                    ExpressionAttributeNames,
+                    ExpressionAttributeValues,
+                    FilterExpression
+                });
 
-            console.log(dynamoResponse);
+                const tasksByStatus = tasksByStatusResponse.Items ||
+                    [];
 
-            //  TODO: add random task if doesnt exist durations on database
-            if (!dynamoResponse.Item || dynamoResponse.Item.list.length === 0) {
-                dynamoResponse = [];       
+                response = utils.constructSuccessResponse({
+                    type: `TASKS_FOUND`,
+                    data: {
+                        tasksByStatus
+                    }
+                });
+                statusResponseCode = 200;   
             }
-
-            response = utils.constructSuccessResponse({
-                type: `TASKS_FOUND`,
-                data: dynamoResponse.Item.list || dynamoResponse
-            });
-            statusResponseCode = 200;
         } else if (method === 'POST') { // create task
             const bodyObject = JSON.parse(body);
             const newTask = await createTask(bodyObject);
 
+            // get lastest tasks to set the new task
+            const Key = {
+                type: `list`,
+                timestamp: 1
+            };
+            const {
+                Item
+            } = await getByKey(Key);
+
+            Item.list.push(newTask);
+
+            // update the list
+            await updateTaskOrderList(Item.list);
+
             response = utils.constructSuccessResponse({
                 type: `TASK_CREATED`,
-                data: newTask
+                data: {
+                    itemAdded: newTask,
+                    lists: {
+                        ...getOrderedTask(Item.list),
+                        pendingOrdered: Item.list
+                    }
+                }
             });
             statusResponseCode = 201;
         }

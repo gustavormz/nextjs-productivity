@@ -36,6 +36,7 @@ const createDuration = async duration => {
         };
 
         await db.put(params).promise();
+        return requestBodyValidated;
     } catch (e) {
         console.error(`Error creating duration`, e);
         utils.constructCustomErrorByType('DURATION_CREATE')
@@ -97,13 +98,32 @@ const handler = async ({
             const bodyObject = JSON.parse(body);
             const requestBodyValidated = await createDuration(bodyObject);
 
+            // get all durations to return the newest values
+            const KeyConditionExpression = "#type = :type";
+            const ExpressionAttributeNames = {
+                "#type": "type"
+            };
+            const ExpressionAttributeValues = {
+                ":type": "duration"
+            };
+
+            let dynamoResponse = await getDurationsByParams({
+                KeyConditionExpression,
+                ExpressionAttributeNames,
+                ExpressionAttributeValues
+            });
+
             response = utils.constructSuccessResponse({
                 type: `DURATION_CREATED`,
-                data: requestBodyValidated
+                data: {
+                    itemAdded: requestBodyValidated,
+                    list: formatDurationsArray(dynamoResponse.Items || [])
+                }
             });
             statusResponseCode = 201;
         }
     } catch (e) {
+        console.error(`Error in durations`, e);
         response = utils.constructErrorResponse(e);
     }
     res.status(statusResponseCode).json(response);

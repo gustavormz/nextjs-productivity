@@ -43,11 +43,128 @@ const updateTask = async (id, dataToUpdate) => {
             ExpressionAttributeValues
         };
 
+        await db.update(params).promise();
+
+        return dataValidated;
+    } catch (e) {
+        console.error(`Error updating task`, e);
+        utils.constructCustomErrorByType(`TASK_UPDATE`);
+    }
+};
+
+const finishTask = async id => {
+    try {
+        console.log(id);
+        const Key = {
+            type: `task`,
+            timestamp: parseInt(id)
+        };
+        const UpdateExpression = `set #status = :status`;
+        const ExpressionAttributeNames = {
+            '#status': 'status'
+        };
+        const ExpressionAttributeValues = {
+            ':status': 'FINISHED'
+        };
+        const ConditionExpression = `#status = PENDING`;
+        const params = {
+            TableName: process.env.REACT_APP_DYNAMODB_TABLE_NAME,
+            Key,
+            UpdateExpression,
+            ExpressionAttributeNames,
+            ExpressionAttributeValues
+        };
+
         return await db.update(params).promise();
     } catch (e) {
         console.error(`Error updating task`, e);
         utils.constructCustomErrorByType(`TASK_UPDATE`);
     }
+};
+
+const removeTaskByIdFromArray = (_tasks, idTask) => {
+    let indexToDelete = -1;
+    const tasks = [..._tasks];
+    for (let i = 0; i < tasks.length; i++) {
+        if (tasks[i].timestamp === idTask) {
+            indexToDelete = i;
+            break;
+        }
+    }
+    tasks.splice(indexToDelete, 1);
+    return tasks;
+};
+
+const getByKey = async Key => {
+    try {
+        const params = {
+            TableName: process.env.REACT_APP_DYNAMODB_TABLE_NAME,
+            Key
+        };
+
+        return await db.get(params).promise();
+    } catch (e) {
+        console.error(`Error getting tasks by params`, e);
+        utils.constructCustomErrorByType('GETTING_TASK');
+    }
+};
+
+const updateTaskOrderList = async orderedList => {
+    try {
+        const Key = {
+            type: `list`,
+            timestamp: 1
+        };
+        const UpdateExpression = `set #list = :list`;
+        const ExpressionAttributeNames = {
+            '#list': 'list'
+        };
+        const ExpressionAttributeValues = {
+            ':list': orderedList
+        };
+
+        const params = {
+            TableName: process.env.REACT_APP_DYNAMODB_TABLE_NAME,
+            Key,
+            UpdateExpression,
+            ExpressionAttributeNames,
+            ExpressionAttributeValues
+        };
+
+        return await db.update(params).promise();
+    } catch (e) {
+        console.error(`Error updating task list`, e);
+        utils.constructCustomErrorByType('LIST_UPDATE');
+    }
+};
+
+const getOrderedTask = tasks => tasks.reduce((tasksObject, task) => {
+    const taskDurationSeconds = task.minutes * 60 + (task.seconds ? task.seconds : 0);
+
+    if (taskDurationSeconds <= 60 * 30) { //short
+        tasksObject.pendingShort.push(task);
+    } else if (taskDurationSeconds <= 60 * 60) { // medium
+        tasksObject.pendingMedium.push(task);
+    } else { // long
+        tasksObject.pendingLong.push(task);
+    }
+
+    return tasksObject;
+}, {
+    pendingLong: [],
+    pendingMedium: [],
+    pendingShort: []
+});
+
+const updateTaskByIdFromArray = (_tasks, idTask, newData) => {
+    const tasks = [..._tasks];
+    for (let i = 0; i < tasks.length; i++) {
+        if (tasks[i].timestamp === idTask) {
+            tasks[i] = { ...newData };
+            break;
+        }
+    }
+    return tasks;
 };
 
 const handler = async ({
@@ -62,24 +179,74 @@ const handler = async ({
         if (method === 'DELETE') {
             await deleteTask(query.id);
 
+            // get lastest tasks to delete the task
+            const Key = {
+                type: `list`,
+                timestamp: 1
+            };
+            const {
+                Item
+            } = await getByKey(Key);
+
+            const newList = removeTaskByIdFromArray(Item.list, parseInt(query.id));
+
+            // update the list
+            await updateTaskOrderList(newList);
+
             response = utils.constructSuccessResponse({
                 type: `TASK_DELETED`,
-                data: query.id
+                data: {
+                    itemRemoved: query.id,
+                    lists: {
+                        ...getOrderedTask(newList),
+                        pendingOrdered: newList
+                    }
+                }
             });
             statusResponseCode = 200;
         } else if (method === 'PUT') {
-            const bodyObject = JSON.parse(body);
-            const updateResponse  = await updateTask(query.id, bodyObject);
-            response = utils.constructSuccessResponse({
-                type: `TASK_UPDATED`,
-                data: updateResponse
-            });
-            statusResponseCode = 201;
+            if (query.hasOwnProperty('id') && body) {
+                const bodyObject = JSON.parse(body);
+                const updateResponse  = await updateTask(query.id, bodyObject);
+
+                // get lastest tasks to delete the task
+                const Key = {
+                    type: `list`,
+                    timestamp: 1
+                };
+                const {
+                    Item
+                } = await getByKey(Key);
+
+                const updatedList = updateTaskByIdFromArray(Item.list, parseInt(query.id), bodyObject);
+
+                // update the list
+                await updateTaskOrderList(updatedList);
+
+                response = utils.constructSuccessResponse({
+                    type: `TASK_UPDATED`,
+                    data: {
+                        itemUpdated: updateResponse,
+                        lists: {
+                            ...getOrderedTask(updatedList),
+                            pendingOrdered: updatedList
+                        }
+                    }
+                });
+                statusResponseCode = 201;
+            } else if (query.hasOwnProperty('status') &&
+                query.hasOwnProperty('id')) {
+                const updateResponse  = await finishTask(query.id);
+                response = utils.constructSuccessResponse({
+                    type: `TASK_FINISHED`,
+                    data: updateResponse
+                });
+                statusResponseCode = 201;
+            }
         }
     } catch (e) {
         response = utils.constructErrorResponse(e);
     }
-    console.log(`respuesta`, response);
     res.status(statusResponseCode).json(response);
 };
 
