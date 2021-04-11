@@ -1,28 +1,14 @@
 import PropTypes from 'prop-types';
 import {
     Grid,
-    Hidden,
-    RootRef,
-    List,
     withStyles
 } from '@material-ui/core';
-import {
-    DragDropContext,
-    Droppable,
-    Draggable
-} from 'react-beautiful-dnd';
 
 import TypographyTitle from '../../components/typography/title';
-import ButtonSecondary from '../../components/ui/button/secondary';
-import DividerBase from '../../components/divider/base';
-import SimpleWrapperText from '../../components/paper/simpleWrapperText';
-import ButtonBase from '../../components/ui/button/base';
-import ListItemTask from '../../components/list/item/task';
-import TimekeeperBase from '../../components/timekeeper/base';
 import TabBase from '../../components/tab/base';
 import TabsBase from '../../components/tabs/base';
-import SelectTaskDefaultDuration from '../../components/ui/select/task/defaultDuration';
 import TabPanelTaskPending from '../../components/tabPanel/task/pending';
+import TabPanelTaskFinished from '../../components/tabPanel/task/finished';
 
 const linkTabProps = index => ({
     id: `nav-tab-${index}`,
@@ -60,38 +46,43 @@ const GridTimekeeperContainer = withStyles(gridTimekeeperStyles)(Grid);
 const HomePage = ({
     tabActive,
     handleTabChange
-}) => {
-    return (
-        <Grid container spacing={4}>
-            <Grid item xs={12}/>
-            <Grid item xs={12}>
-                <TypographyTitle>
-                    Home
-                </TypographyTitle>
-            </Grid>
-            <Grid item xs={12}>
-                <TabsBase
-                    onChange={handleTabChange}
-                    value={tabActive}
-                    centered>
-                    <LinkTab
-                        { ...linkTabProps (0) }
-                        href="/pending" 
-                        label={`Pendientes`} />
-                    <LinkTab
-                        { ...linkTabProps (1) }
-                        href="/finished"
-                        label={`Finalizadas`}/>
-                </TabsBase>
-            </Grid>
-            <TabPanelTaskPending
-                role="tabpanel"
-                hidden={tabActive !== 0}
-                id={`nav-tabpanel-0`}
-                aria-labelledby={`nav-tab-0`}/>
+}) => (
+    <Grid container spacing={4}>
+        <Grid item xs={12}/>
+        <Grid item xs={12}>
+            <TypographyTitle>
+                Tareas
+            </TypographyTitle>
         </Grid>
-    ); 
-};
+        <Grid item xs={12}>
+            <TabsBase
+                onChange={handleTabChange}
+                value={tabActive}
+                centered>
+                <LinkTab
+                    { ...linkTabProps (0) }
+                    href="/pending" 
+                    label={`Pendientes`} />
+                <LinkTab
+                    { ...linkTabProps (1) }
+                    href="/finished"
+                    label={`Finalizadas`}/>
+            </TabsBase>
+        </Grid>
+        <TabPanelTaskPending
+            callApi={tabActive === 0}
+            role="tabpanel"
+            hidden={tabActive !== 0}
+            id={`nav-tabpanel-0`}
+            aria-labelledby={`nav-tab-0`}/>
+        <TabPanelTaskFinished
+            callApi={tabActive === 1}
+            role={'tabpanel'}
+            hidden={tabActive !== 1}
+            id={`nav-tabpanel-1`}
+            aria-labelledby={`nav-tab-1`}/>
+    </Grid>
+);
 
 HomePage.propTypes = {
     tasks: PropTypes.array,

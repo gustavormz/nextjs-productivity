@@ -52,19 +52,22 @@ const updateTask = async (id, dataToUpdate) => {
     }
 };
 
-const finishTask = async id => {
+const finishTask = async (id, {
+    spentTime
+}) => {
     try {
-        console.log(id);
         const Key = {
             type: `task`,
             timestamp: parseInt(id)
         };
-        const UpdateExpression = `set #status = :status`;
+        const UpdateExpression = `set #status = :status, #spentTime = :spentTime`;
         const ExpressionAttributeNames = {
-            '#status': 'status'
+            '#status': 'status',
+            '#spentTime': 'spentTime'
         };
         const ExpressionAttributeValues = {
-            ':status': 'FINISHED'
+            ':status': 'FINISHED',
+            ':spentTime': spentTime,
         };
         const ConditionExpression = `#status = PENDING`;
         const params = {
@@ -176,6 +179,9 @@ const handler = async ({
     let response = ``;
 
     try {
+        console.log(`tratando de procesar`, query);
+        console.log(body);
+
         if (method === 'DELETE') {
             await deleteTask(query.id);
 
@@ -205,7 +211,44 @@ const handler = async ({
             });
             statusResponseCode = 200;
         } else if (method === 'PUT') {
-            if (query.hasOwnProperty('id') && body) {
+            if (query.hasOwnProperty('id') &&
+                body &&
+                query.hasOwnProperty('status') &&
+                query.status === 'FINISH') {
+                
+                console.log('finzlizando');
+
+                const bodyObject = JSON.parse(body);
+                const updateResponse  = await finishTask(query.id, bodyObject);
+
+                console.log(updateResponse);
+
+                // get lastest tasks to update the task
+                const Key = {
+                    type: `list`,
+                    timestamp: 1
+                };
+                const {
+                    Item
+                } = await getByKey(Key);
+
+                const updatedList = removeTaskByIdFromArray(Item.list, parseInt(query.id));
+
+                // update the list
+                await updateTaskOrderList(updatedList);
+
+                response = utils.constructSuccessResponse({
+                    type: `TASK_FINISHED`,
+                    data: {
+                        itemUpdated: bodyObject,
+                        lists: {
+                            ...getOrderedTask(updatedList),
+                            pendingOrdered: updatedList
+                        }
+                    }
+                });
+                statusResponseCode = 201;
+            } else if (query.hasOwnProperty('id') && body) {
                 const bodyObject = JSON.parse(body);
                 const updateResponse  = await updateTask(query.id, bodyObject);
 

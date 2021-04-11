@@ -34,7 +34,8 @@ const TimekeeperBase = ({
     initialTime,
     handlePause,
     handleReset,
-    handleResume
+    handleResume,
+    handleStop
 }) => (
     <BoxContainerStyled>
         <div style={{
@@ -73,7 +74,9 @@ const TimekeeperBase = ({
                     <Pause />  
                 </IconButton>
             </Tooltip>
-            <Tooltip title={'Parar'}>
+            <Tooltip
+                onClick={handleStop}
+                title={'Parar'}>
                 <IconButton>
                     <Stop />
                 </IconButton>
@@ -93,7 +96,8 @@ TimekeeperBase.propTypes = {
     initialTime: PropTypes.number,
     handlePause: PropTypes.func,
     handleReset: PropTypes.func,
-    handleResume: PropTypes.func
+    handleResume: PropTypes.func,
+    handleStop: PropTypes.func
 };
 
 export default TimekeeperBase;

@@ -3,7 +3,8 @@ import {
     Dialog,
     DialogTitle,
     DialogContent,
-    Grid
+    Grid,
+    Hidden
 } from '@material-ui/core';
 import {
     Formik
@@ -65,15 +66,21 @@ const DialogTaskEdit = ({
                             <Grid item xs={12}>
                                 <DividerBase />
                             </Grid>
-                            <Grid item xs={4}/>
-                            <Grid item xs={4}>
+                            <Hidden mdDown>
+                                <Grid item md={4}/>
+                            </Hidden>
+                            <Grid item
+                                md={4}
+                                xs={6}>
                                 <ButtonBase
                                     disabled={!isValid}
                                     type={'submit'}>
                                     Actualizar
                                 </ButtonBase>
                             </Grid>
-                            <Grid item xs={4}>
+                            <Grid item
+                                md={4}
+                                xs={6}>
                                 <ButtonSecondary
                                     onClick={handleClose}>
                                     Cancelar
@@ -100,7 +107,7 @@ DialogTaskEdit.defaultProps = {
     validationSchema: Yup.object({
         title: Yup.string()
             .max(100, `Debe contener máximo 100 caracteres`)
-            ,
+            .required(`El título es requerido`),
         description: Yup.string()
             .max(255, `Debe contener máximo 255 caracteres`)
             .required(`La descripción es requerida`),
@@ -111,21 +118,20 @@ DialogTaskEdit.defaultProps = {
             .max(120, `El tiempo máximo en minutos es de 120`)
             .min(1, `El tiempo mínimo en minutos es de 1`)
             .when(['durations', 'duration'], (durations, duration, schema) => {
-                return schema.test(
-                    ``,
-                    `Elige un valor distinto a los ya existentes`,
-                    value => {
-                        if (duration !== 'custom') {
+                if (duration === 'custom') {
+                    return schema.test(
+                        ``,
+                        `Elige un valor distinto a los ya existentes`,
+                        value => {
+                            for (let duration of durations) {
+                                if (value === duration.minutes) {
+                                    return false;
+                                }
+                            }
                             return true;
                         }
-                        for (let duration of durations) {
-                            if (value === duration.minutes) {
-                                return false;
-                            }
-                        }
-                        return true;
-                    }
-                );
+                    );
+                }
             }).when('seconds', (seconds, schema) => {
                 return seconds ?
                     schema.max(119, `El tiempo máximo en minutos es de 119`) :
@@ -136,7 +142,8 @@ DialogTaskEdit.defaultProps = {
                 if (duration === 'custom') {
                     return schema.required();
                 }
-            })
+            }),
+        duration: Yup.string().required('Elige una duración')
     }),
     initialValues: {
         title: ``,

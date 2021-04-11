@@ -7,7 +7,8 @@ import {
 import {
     Grid,
     RootRef,
-    List
+    List,
+    Backdrop
 } from '@material-ui/core';
 import {
     DragDropContext,
@@ -100,8 +101,12 @@ const getSecondsByMinutesAndSeconds = ({
 
 const getTimeByTask = task => getSecondsByMinutesAndSeconds(task);
 
+const getSpentTime = (task, finalTime) => getSecondsByMinutesAndSeconds(task) - finalTime; 
+
 const TabPaneTaskPending = ({
     baseApiUrl,
+    callApi,
+    prevStateKey,
     ...props
 }) => {
     const [state, setState] = useState({
@@ -125,58 +130,135 @@ const TabPaneTaskPending = ({
         curseTask: undefined
     });
     const [tasks, setTasks] = useState({
-        pendingOrdered: [],
+        pendingOrdered: undefined,
         pendingShort: [],
         pendingMedium: [],
         pendingLong: []
     });
-    const [durations, setDurations] = useState([{
-        label: `Personalizar`,
-        value: `custom`
-    }]);
+    const [durations, setDurations] = useState([]);
     const [timekeeper, setTimekeeper] = useState({
         seconds: 0,
-        isActive: false
+        isActive: false,
+        state: `STOP`
     });
 
-    const intervalReference = useRef(null);
+    const intervalTimekeeperReference = useRef(null);
 
-    function handleTimekeeperResume () {
-        if (intervalReference.current) {
+    function handleTimekeeperPause () {
+        if (!intervalTimekeeperReference.current) {
             return;
         }
-        intervalReference.current = setInterval(function () {
+        clearInterval(intervalTimekeeperReference.current);
+        setTimekeeper({
+            ...timekeeper,
+            isActive: false,
+            state: 'PAUSE'
+        });
+        intervalTimekeeperReference.current = null;
+    }
+
+    function handleTimekeeperReset () {
+        clearInterval(intervalTimekeeperReference.current);
+        const initialSeconds = getTimeByTask(state.curseTask);
+        setTimekeeper({
+            isActive: false,
+            seconds: initialSeconds,
+            state: 'RESET'
+        });
+        intervalTimekeeperReference.current = null;
+    }
+
+    function handleTimekeeperStop () {
+        clearInterval(intervalTimekeeperReference.current);
+        setTimekeeper({
+            isActive: false,
+            seconds: null,
+            state: 'STOP'
+        });
+        intervalTimekeeperReference.current = null;
+    }
+
+    async function handleTimekeeperResume () {
+        if (intervalTimekeeperReference.current) {
+            return;
+        }
+        intervalTimekeeperReference.current = setInterval(function () {
             setTimekeeper(timekeeper => ({
                 ...timekeeper,
-                seconds: timekeeper.seconds - 1
+                seconds: timekeeper.seconds - 1,
+                isActive: true,
+                state: 'PLAY'
             }));
         }, 1000);
     }
 
-    function handleTimekeeperPause () {
-        if (!intervalReference.current) {
-            return;
+    // useEffect to finish task when counter is 0
+    useEffect(function () {
+        async function finishTask (task) {
+            setState({
+                ...state,
+                finishTask: task,
+                isRequesting: true
+            });
+    
+            handleTimekeeperPause();
+            const spentTimeSeconds = getSpentTime(task, timekeeper.seconds);
+    
+            const response = await (await fetch (`${baseApiUrl}/task/${state.curseTask.timestamp}?status=FINISH`, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    ...state.curseTask,
+                    spentTime: spentTimeSeconds
+                })
+            })).json();
+    
+            if (!response.error) {
+                setTasks(response.data.lists);
+            }
+    
+            setState({
+                ...state,
+                isRequesting: false,
+                curseTask: undefined,
+                finishTask: undefined
+            });
         }
-        clearInterval(intervalReference.current);
-        setTimekeeper({
-            ...timekeeper,
-            isActive: false
-        });
-        intervalReference.current = null;
-    }
+        if (intervalTimekeeperReference.current &&
+                timekeeper.seconds === 0) {
+            handleTimekeeperStop();
+            finishTask(state.curseTask);
+        }
+    }, [timekeeper.seconds]);
 
-    function handleTimekeeperReset () {
-        clearInterval(intervalReference.current);
-        const initialSeconds = getTimeByTask(state.curseTask);
-        setTimekeeper({
-            isActive: false,
-            seconds: initialSeconds
-        });
-        intervalReference.current = null;
-    }
+    useEffect(function () {
+        const previousState = JSON.parse(localStorage.getItem(prevStateKey));
+        console.log(previousState);
+        if (previousState && previousState.timekeeper) {
+            setState({
+                ...state,
+                curseTask: previousState.task
+            });
+            setTimekeeper(previousState.timekeeper);
+        }
+
+        return () => {
+            if (intervalTimekeeperReference.current) {
+                console.log(state.curseTask);
+                localStorage.setItem(prevStateKey, JSON.stringify({
+                    timekeeper,
+                    task: state.curseTask
+                }));
+                clearInterval(intervalTimekeeperReference);
+            }
+        };
+    }, []);
 
     useEffect(function () {
         async function fetchData () {
+            setState({
+                ...state,
+                isRequesting: true
+            });
             const responses = await Promise.all([
                 await fetch(`${baseApiUrl}/list`),
                 await fetch(`${baseApiUrl}/duration`)
@@ -185,11 +267,18 @@ const TabPaneTaskPending = ({
             const newDurations = getDataFromDynamoResponse(await responses[1].json());
 
             setTasks(list);
-            setDurations(durations => durations.concat(newDurations));
+            setDurations(durations => newDurations.concat([{
+                label: `Personalizar`,
+                value: `custom`
+            }]));
+            setState({
+                ...state,
+                isRequesting: false
+            });
         }
 
         fetchData();
-    }, []);
+    }, [callApi]);
 
     function handleSelectTaskDuration (event) {
         const selectValue = getValueFromEvent(event);
@@ -279,7 +368,10 @@ const TabPaneTaskPending = ({
 
     async function onDragEnd (result) {
         // dropped outside the list or doesnt position change
-        if (!result.destination || result.destination.index === result.source.index) {
+        if (!result.destination
+            || result.destination.index === result.source.index
+            || intervalTimekeeperReference.current
+            || state.curseTask) {
             return;
         }
 
@@ -454,11 +546,42 @@ const TabPaneTaskPending = ({
         });
     }
 
-    function handleFinishTaskClick (task) {
+    async function handleFinishTaskClick (task) {
         setState({
             ...state,
-            finishTask: task
+            finishTask: task,
+            isRequesting: true
         });
+
+        handleTimekeeperPause();
+        const spentTimeSeconds = getSpentTime(task, timekeeper.seconds);
+
+        const response = await (await fetch (`${baseApiUrl}/task/${state.curseTask.timestamp}?status=FINISH`, {
+            method: 'PUT',
+            body: JSON.stringify({
+                ...state.curseTask,
+                spentTime: spentTimeSeconds
+            })
+        })).json();
+
+        if (!response.error) {
+            setTasks(response.data.lists);
+        }
+
+        setState({
+            ...state,
+            isRequesting: false,
+            curseTask: undefined,
+            finishTask: undefined
+        });
+    }
+
+    function handleTaskCancelClick (task) {
+        setState({
+            ...state,
+            curseTask: undefined
+        });
+        handleTimekeeperStop();
     }
 
     function handleStartTask (task) {
@@ -470,6 +593,7 @@ const TabPaneTaskPending = ({
             ...timekeeper,
             seconds: getTimeByTask(task)
         });
+        handleTimekeeperResume();
     }
 
     return (
@@ -513,6 +637,7 @@ const TabPaneTaskPending = ({
                         item
                         xs={12}>
                         <TimekeeperBase
+                            handleStop={handleTimekeeperReset}
                             handlePause={handleTimekeeperPause}
                             handleReset={handleTimekeeperReset}
                             handleResume={handleTimekeeperResume}
@@ -524,6 +649,10 @@ const TabPaneTaskPending = ({
                     xs={12}
                     md={7}>
                     <SelectTaskDefaultDuration
+                        disabled={
+                            (intervalTimekeeperReference.current != null ||
+                            state.curseTask) ? true : false
+                        }
                         value={state.selectTaskDurationValue || `ALL`}
                         onChange={handleSelectTaskDuration}/>
                 </Grid>
@@ -531,14 +660,20 @@ const TabPaneTaskPending = ({
                     container
                     alignItems={'flex-end'}
                     item xs={12} md={5}>
-                    <ButtonSecondary onClick={handleNewTaskButtonClick}>
+                    <ButtonSecondary
+                        disabled={
+                            (intervalTimekeeperReference.current != null ||
+                            state.curseTask) ? true : false
+                        }
+                        onClick={handleNewTaskButtonClick}>
                         Agregar Nueva Tarea
                     </ButtonSecondary>
                 </Grid>
                 <Grid item xs={12}>
                     <DividerBase />
                 </Grid>
-                { tasks.pendingOrdered.length > 0 ? (
+                { (tasks.pendingOrdered &&
+                    tasks.pendingOrdered.length > 0) && (
                     <Grid item xs={12}>
                         
                         <DragDropContext onDragEnd={onDragEnd}>
@@ -555,16 +690,34 @@ const TabPaneTaskPending = ({
 
                                                     { (provided, snapshot) => (
                                                         <ListItemTask
-                                                            handleStart={index === 0 ?
+                                                            handleStart={
+                                                                (index === 0 &&
+                                                                    !state.curseTask) ?
                                                                 handleStartTask :
                                                                 null
                                                             }
-                                                            handleFinishTask={(index === 0 && state.curseTask) ?
+                                                            handleFinishTask={(index === 0 &&
+                                                                state.curseTask &&
+                                                                timekeeper.state !== 'RESET') ?
                                                                 handleFinishTaskClick :
                                                                 null
                                                             }
-                                                            handleEditClick={handleEditTaskClick}
-                                                            handleDeleteClick={handleDeleteTaskClick}
+                                                            handleEditClick={
+                                                                state.curseTask ?
+                                                                    null :
+                                                                    handleEditTaskClick
+                                                            }
+                                                            handleDeleteClick={
+                                                                (index === 0) ?
+                                                                null :
+                                                                handleDeleteTaskClick
+                                                            }
+                                                            handleCancel={
+                                                                (index === 0 &&
+                                                                    state.curseTask) ?
+                                                                handleTaskCancelClick :
+                                                                null
+                                                            }
                                                             task={task}
                                                             ContainerComponent="li"
                                                             ContainerProps={{ ref: provided.innerRef }}
@@ -585,19 +738,24 @@ const TabPaneTaskPending = ({
                         </DragDropContext>
 
                     </Grid>
-                ) : (
-                    <>
-                        <Grid item xs={12}>
-                            <PaperSimpleWrapperText>
-                                Aún no tienes tareas
-                            </PaperSimpleWrapperText>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <ButtonBase>
-                                Agregar 50 tareas
-                            </ButtonBase>
-                        </Grid>
-                    </>
+                )}
+                { tasks.pendingOrdered &&
+                    tasks.pendingOrdered.length === 0 && (
+                        <>
+                            <Grid item xs={12}>
+                                <PaperSimpleWrapperText>
+                                    Aún no tienes tareas
+                                </PaperSimpleWrapperText>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <ButtonBase>
+                                    Agregar 50 tareas
+                                </ButtonBase>
+                            </Grid>
+                        </>
+                ) }
+                { !tasks.pendingOrdered && (
+                    <p>Skeleton</p>
                 ) }
             </Grid>
         </div>
@@ -605,11 +763,14 @@ const TabPaneTaskPending = ({
 };
 
 TabPaneTaskPending.propTypes = {
-    baseApiUrl: PropTypes.string
+    baseApiUrl: PropTypes.string,
+    callApi: PropTypes.bool,
+    prevStateKey: PropTypes.string
 };
 
 TabPaneTaskPending.defaultProps = {
-    baseApiUrl: `/api`
+    baseApiUrl: `/api`,
+    prevStateKey: `PREV_STATE`
 };
 
 export default TabPaneTaskPending;

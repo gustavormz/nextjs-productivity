@@ -13,6 +13,9 @@ import DialogLoaderFullscreenCircular from '../src/components/dialog/loader/full
 import DialogResponse from '../src/components/dialog/response';
 import DialogTaskEdit from '../src/components/dialog/task/edit';
 import DialogTaskDeleteConfirm from '../src/components/dialog/task/delete';
+import DialogTaskFinishConfirm from '../src/components/dialog/task/finish';
+
+const getValueFromEvent = event => event.target.value;
 
 const removeTaskByIdFromArray = (_tasks, idTask) => {
     let indexToDelete = -1;
@@ -29,7 +32,7 @@ const removeTaskByIdFromArray = (_tasks, idTask) => {
 
 const updateTaskByIdFromArray = (_tasks, idTask, newData) => {
     const tasks = [..._tasks];
-    for (let i; i < tasks.length; i++) {
+    for (let i = 0; i < tasks.length; i++) {
         if (tasks[i].timestamp === idTask) {
             tasks[i] = { ...newData };
             break;
@@ -45,7 +48,7 @@ const orderTasks = (list, startIndex, endIndex) => {
     return result;
 };
 
-const updateCurrentOrderList = async orderedList => {
+const updateCurrentOrderList = async (baseApiUrl, orderedList) => {
     try {
         // save current order list
         return await fetch(`${baseApiUrl}/list`, {
@@ -55,6 +58,18 @@ const updateCurrentOrderList = async orderedList => {
     } catch (e) {
         console.error(`Error updating ordered list`, e);
         throw e;
+    }
+};
+
+const getTimeSecondsFromDurationId = (durations, durationId) => {
+    for (let duration of durations) {
+        if (duration.timestamp === durationId) {
+            const {
+                minutes,
+                seconds
+            } = duration;
+            return (minutes * 60) + (seconds || 0);
+        }
     }
 };
 
@@ -71,30 +86,60 @@ const Home = ({
         updateTask: undefined,
         isDialogTaskEditOpen: false,
         isDialogTaskDeleteConfirmOpen: false,
-        deleteTask: undefined
+        deleteTask: undefined,
+        isDialogTaskFinishConfirmOpen: false,
+        finishTask: undefined,
+        tabActive: 0,
+        selectTaskDuration: `ALL`
     });
+    const [finishedTasks, setFinishedTasks] = useState([]);
     const [tasks, setTasks] = useState(undefined);
-    const [durations, setDurations] = useState([])
-    
-    useEffect(() => {
-        async function fetchTaskAndDurations () {
-            const responses = await Promise.all([
-                await fetch(`${baseApiUrl}/task`),
-                await fetch(`${baseApiUrl}/duration`)
-            ]);
+    const [durations, setDurations] = useState([]);
+    const [tasksShow, setTasksShow] = useState(undefined);
 
-            const tasksToSet = await (responses[0]).json();
-            const durationsToSet = await (responses[1]).json();
-            durationsToSet.data.push({
-                label: `Personalizar`,
-                value: `custom`
-            });
 
-            setTasks(tasksToSet.data);
-            setDurations(durationsToSet.data);
+    function handleSelectTaskDefaultDurationChange (event) {
+        event.preventDefault();
+        const value = getValueFromEvent(event);
+
+        let newTasks = tasks;
+
+        if (value !== 'ALL') {
+            let timeTopLimitSeconds = 60 * 60 * 2;
+            let timeBottomLimitSeconds = 60 * 60;
+            
+            if (value === 'SHORT') {
+                timeTopLimitSeconds = 60 * 30;
+                timeBottomLimitSeconds = 0;
+            } else if (value === 'MEDIUM') {
+                timeTopLimitSeconds = 60 * 60;
+                timeBottomLimitSeconds = 60 * 30;
+            }
+
+            newTasks = tasks.reduce((tasksReturn, task) => {
+                const taskDurationSeconds = getTimeSecondsFromDurationId(durations, task.duration);
+                if (taskDurationSeconds > timeBottomLimitSeconds &&
+                    taskDurationSeconds <= timeTopLimitSeconds) {
+                    tasksReturn.push(task);
+                }
+                return tasksReturn;
+            }, []);
         }
-        fetchTaskAndDurations();
-    }, []);
+
+        setTasksShow(newTasks);
+        setState({
+            ...state,
+            isRequesting: false,
+            selectTaskDuration: value
+        });
+    }
+
+    function handleTabChange (event, index) {
+        setState({
+            ...state,
+            tabActive: index
+        });
+    }
 
     function handleDialogTaskCreateClose () {
         setState({
@@ -149,7 +194,8 @@ const Home = ({
                     setTasks(tasksCopy);
 
                     // save current order list
-                    await updateCurrentOrderList(tasksCopy);
+                    
+                    await updateCurrentOrderList(baseApiUrl, tasksCopy);
                 }
                 isError = response.error;
                 dialogResponseType = response.errorType || response.successType
@@ -166,7 +212,7 @@ const Home = ({
                 setTasks(tasksCopy);
 
                 // save current order list
-                await updateCurrentOrderList(tasksCopy);
+                await updateCurrentOrderList(baseApiUrl, tasksCopy);
             }
 
             isError = response.error;
@@ -194,7 +240,6 @@ const Home = ({
     }
 
     function handleEditClick (task) {
-        console.log(task);
         setState({
             ...state,
             updateTask: task,
@@ -227,7 +272,7 @@ const Home = ({
             setTasks(newTasks);
             
             // save current order list
-            await updateCurrentOrderList(newTasks);
+            await updateCurrentOrderList(baseApiUrl, newTasks);
         }
 
         setState({
@@ -266,7 +311,7 @@ const Home = ({
             setTasks(newTasks);
             
             // save current order list
-            await updateCurrentOrderList(newTasks);
+            await updateCurrentOrderList(baseApiUrl, newTasks);
         }
 
         setState({
@@ -286,15 +331,16 @@ const Home = ({
     }
 
     async function onDragEnd (result) {
+        // dropped outside the list
+        if (!result.destination || result.destination.index === result.source.index) {
+            return;
+        }
+
         setState({
             ...state,
             isRequesting: true
         });
 
-        // dropped outside the list
-        if (!result.destination) {
-            return;
-        }
         const tasksOrdered = orderTasks(
             tasks,
             result.source.index,
@@ -303,7 +349,7 @@ const Home = ({
         setTasks(tasksOrdered);
         
         // save current order list
-        await updateCurrentOrderList(tasksOrdered);
+        await updateCurrentOrderList(baseApiUrl, tasksOrdered);
 
         setState({
             ...state,
@@ -312,7 +358,52 @@ const Home = ({
     }
 
     function handleTimekeeperFinish (seconds) {
-        console.log(`finish`);
+        
+    }
+
+    function handleDialogTaskFinishClose () {
+        setState({
+            ...state,
+            isDialogTaskFinishConfirmOpen: false
+        });
+    }
+
+    async function handleDialogTaskFinishConfirm () {
+        setState({
+            ...state,
+            isRequesting: true
+        });
+
+        const response = await (await fetch(`${baseApiUrl}/task/${state.finishTask.timestamp}?status=finish`, {
+            method: `PUT`
+        })).json();
+
+        if (!response.error) {
+            const newTasks = updateTaskByIdFromArray(tasks, state.finishTask.timestamp, {
+                ...state.finishTask,
+                status: `FINISHED`
+            });
+            setTasks(newTasks);
+            
+            // save current order list
+            await updateCurrentOrderList(baseApiUrl, newTasks);
+        }
+
+        setState({
+            ...state,
+            isDialogTaskFinishConfirmOpen: response.error,
+            finishTask: response.error ?
+                state.finishTask :
+                undefined
+        });
+    }
+
+    function handleFinishClick (task) {
+        setState({
+            ...state,
+            isDialogTaskFinishConfirmOpen: true,
+            finishTask: task
+        });
     }
 
     return (
@@ -325,6 +416,14 @@ const Home = ({
                     id={state.deleteTask.timestamp}
                     open={state.isDialogTaskDeleteConfirmOpen}
                     title={state.deleteTask.title}/>
+            ) }
+            { state.finishTask && (
+                <DialogTaskFinishConfirm
+                handleClose={handleDialogTaskFinishClose}
+                handleConfirm={handleDialogTaskFinishConfirm}
+                id={state.finishTask.timestamp}
+                open={state.isDialogTaskFinishConfirmOpen}
+                title={state.finishTask.title}/>
             ) }
             <DialogResponse
                 handleClose={handleDialogResponseClose}
@@ -343,34 +442,19 @@ const Home = ({
                 handleClose={handleDialogTaskEditClose}
                 handleFormSubmit={handleDialogTaskEditFormSubmit}
                 open={state.isDialogTaskEditOpen}/>
-            { tasks ? (
-                <Page
-                    handleTimekeeperFinish={handleTimekeeperFinish}
-                    onDragEnd={onDragEnd}
-                    handleDeleteClick={handleDeleteClick}
-                    durations={durations}
-                    handleEditClick={handleEditClick}
-                    handleNewTaskButtonClick={handleNewTaskButtonClick}
-                    tasks={tasks}/>
-            ) : (
-                <Static />
-            ) }
+            <Page
+                handleTabChange={handleTabChange}
+                tabActive={state.tabActive} />
         </LayoutBase>
     );
 };
 
-export const getServerSideProps = () => {
-    const baseApiUrl = `/api`;
-
-    return {
-        props: {
-            baseApiUrl
-        }
-    };
-};
-
 Home.propTypes = {
     baseApiUrl: PropTypes.string
+};
+
+Home.defaultProps = {
+    baseApiUrl: `/api`
 };
 
 export default Home;

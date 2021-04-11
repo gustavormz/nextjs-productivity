@@ -3,7 +3,8 @@ import {
     Dialog,
     DialogTitle,
     DialogContent,
-    Grid
+    Grid,
+    Hidden
 } from '@material-ui/core';
 import {
     Formik
@@ -48,6 +49,7 @@ const DialogTaskCreate = ({
                     isValid,
                 }) => (
                     <form onSubmit={handleSubmit}>
+                        { console.log(errors) }
                         <Grid container spacing={2}>
                             <Grid item xs={12}>
                                 <FormTask
@@ -61,15 +63,21 @@ const DialogTaskCreate = ({
                             <Grid item xs={12}>
                                 <DividerBase />
                             </Grid>
-                            <Grid item xs={4}/>
-                            <Grid item xs={4}>
+                            <Hidden mdDown>
+                                <Grid item md={4}/>
+                            </Hidden>
+                            <Grid
+                                md={4}
+                                item xs={6}>
                                 <ButtonBase
                                     disabled={!isValid}
                                     type={'submit'}>
                                     Crear
                                 </ButtonBase>
                             </Grid>
-                            <Grid item xs={4}>
+                            <Grid
+                                md={4}
+                                item xs={6}>
                                 <ButtonSecondary
                                     onClick={handleClose}>
                                     Cancelar
@@ -106,19 +114,21 @@ DialogTaskCreate.defaultProps = {
         minutes: Yup.number()
             .max(120, `El tiempo máximo en minutos es de 120`)
             .min(1, `El tiempo mínimo en minutos es de 1`)
-            .when('durations', (durations, schema) => {
-                return schema.test(
-                    ``,
-                    `Elige un valor distinto a los ya existentes`,
-                    value => {
-                        for (let duration of durations) {
-                            if (value === duration.minutes) {
-                                return false;
+            .when(['durations', 'duration'], (durations, duration, schema) => {
+                if (duration === 'custom') {
+                    return schema.test(
+                        ``,
+                        `Elige un valor distinto a los ya existentes`,
+                        value => {
+                            for (let duration of durations) {
+                                if (value === duration.minutes) {
+                                    return false;
+                                }
                             }
+                            return true;
                         }
-                        return true;
-                    }
-                );
+                    );
+                }
             }).when('seconds', (seconds, schema) => {
                 return seconds ?
                     schema.max(119, `El tiempo máximo en minutos es de 119`) :
@@ -129,7 +139,8 @@ DialogTaskCreate.defaultProps = {
                 if (duration === 'custom') {
                     return schema.required();
                 }
-            })
+            }),
+        duration: Yup.string().required('Elige una duración')
     }),
     initialValues: {
         title: ``,

@@ -138,9 +138,7 @@ const handler = async ({
 
                 response = utils.constructSuccessResponse({
                     type: `TASKS_FOUND`,
-                    data: {
-                        tasksByStatus
-                    }
+                    data: tasksByStatus
                 });
                 statusResponseCode = 200;   
             }

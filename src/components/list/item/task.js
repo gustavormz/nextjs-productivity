@@ -13,7 +13,8 @@ import {
 import {
     Done,
     Cancel,
-    PlayCircleFilled
+    PlayCircleFilled,
+    Delete
 } from '@material-ui/icons';
 
 import PaperTaskStatus from '../../paper/task/status';
@@ -31,6 +32,23 @@ const styles = theme => ({
 
 const ListItemStyled = withStyles(styles)(ListItem);
 
+const ListItemTextStyled = withStyles(theme => ({
+    primary: {
+        overflow: 'hidden',
+        width: `90%`,
+        [theme.breakpoints.down('sm')]: {
+            width: `75%`
+        }
+    },
+    secondary: {
+        overflow: 'hidden',
+        width: `90%`,
+        [theme.breakpoints.down('sm')]: {
+            width: `75%`
+        }
+    }
+}))(ListItemText);
+
 const ListItemTask = ({
     mapStatus,
     handleFinishTask,
@@ -40,30 +58,34 @@ const ListItemTask = ({
     handleDeleteClick,
     handleStart,
     durations,
+    handleCancel,
     ...props
 }) => (
     <ListItemStyled
-        onClick={() => handleEditClick(task)}
+        onClick={handleEditClick ?
+            () => handleEditClick(task) :
+            null
+        }
         {...props}>
-        <ListItemIconTask>
-            <Hidden mdUp>
+        <Hidden mdUp>
+            <ListItemIconTask>
                 <Tooltip title={'Estado'}>
                     <Avatar>
-                        {mapStatus[task.status][0]}
+                        {task.title[0]}
                     </Avatar>
                 </Tooltip>
-            </Hidden>
-        </ListItemIconTask>
+            </ListItemIconTask>
+        </Hidden>
         <Hidden mdDown>
             <ListItemAvatar>
                 <Tooltip title={`Tipo de duración`}>
                     <Avatar>
-                        M
+                        {task.title[0]}
                     </Avatar>
                 </Tooltip>
             </ListItemAvatar>
         </Hidden>
-        <ListItemText
+        <ListItemTextStyled
             secondary={(
                 <Hidden mdDown>
                     {task.description}
@@ -91,13 +113,23 @@ const ListItemTask = ({
                     </IconButton>
                 </Tooltip>
             )}
-            { !handleStart && (
+            { handleCancel && (
+                <Tooltip
+                    title={'Cancelar'}
+                    onClick={() => handleCancel(task)}>
+                    <IconButton
+                        style={{ padding: 4 }}>
+                        <Cancel />
+                    </IconButton>
+                </Tooltip>
+            ) }
+            { handleDeleteClick && (
                 <Tooltip
                     title={`Eliminar`}
                     onClick={() => handleDeleteClick(task)}>
                     <IconButton
                         style={{ padding: 4 }}>
-                        <Cancel />
+                        <Delete />
                     </IconButton>
                 </Tooltip>
             ) }
@@ -122,7 +154,8 @@ ListItemTask.propTypes = {
     handleFinishTask: PropTypes.func,
     isActive: PropTypes.bool,
     mapStatus: PropTypes.object,
-    handleStart: PropTypes.func
+    handleStart: PropTypes.func,
+    handleCancel: PropTypes.func
 };
 
 ListItemTask.defaultProps = {
