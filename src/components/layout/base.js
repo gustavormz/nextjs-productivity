@@ -4,10 +4,14 @@ import ContainerBase from '../container/base';
 
 const LayoutBase = ({
     maxWidth,
+    handleTabChange,
+    tabActive,
     children
 }) => (
     <>
-        <Header />
+        <Header
+            handleTabChange={handleTabChange}
+            tabActive={tabActive}/>
         <ContainerBase maxWidth={maxWidth}>
             { children }
         </ContainerBase>

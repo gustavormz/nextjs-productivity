@@ -9,6 +9,7 @@ import TabBase from '../../components/tab/base';
 import TabsBase from '../../components/tabs/base';
 import TabPanelTaskPending from '../../components/tabPanel/task/pending';
 import TabPanelTaskFinished from '../../components/tabPanel/task/finished';
+import TabPanelTasks from '../../components/tabPanel/tasks';
 
 const linkTabProps = index => ({
     id: `nav-tab-${index}`,
@@ -53,6 +54,14 @@ const HomePage = ({
             <TypographyTitle>
                 Tareas
             </TypographyTitle>
+        </Grid>
+        <Grid item xs={12}>
+            <TabPanelTasks
+                callApi={tabActive === 0}
+                role="tabpanel"
+                hidden={tabActive !== 0}
+                id={`drawer-nav-tabpanel-0`}
+                aria-labelledby={`drawer-nav-tab-0`}/>
         </Grid>
         <Grid item xs={12}>
             <TabsBase
