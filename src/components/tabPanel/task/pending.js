@@ -139,7 +139,8 @@ const TabPaneTaskPending = ({
     const [timekeeper, setTimekeeper] = useState({
         seconds: 0,
         isActive: false,
-        state: `STOP`
+        state: `STOP`,
+        totalTime: 0
     });
     const [curseTask, setCurseTask] = useState(undefined);
 
@@ -164,7 +165,8 @@ const TabPaneTaskPending = ({
         setTimekeeper({
             isActive: false,
             seconds: initialSeconds,
-            state: 'RESET'
+            state: 'RESET',
+            totalTime: initialSeconds
         });
         intervalTimekeeperReference.current = null;
     }
@@ -593,10 +595,12 @@ const TabPaneTaskPending = ({
     }
 
     function handleStartTask (task) {
+        const initialSeconds = getTimeByTask(task)
         setCurseTask(task);
         setTimekeeper({
             ...timekeeper,
-            seconds: getTimeByTask(task)
+            seconds: initialSeconds,
+            totalTime: initialSeconds
         });
         handleTimekeeperResume();
     }
@@ -642,6 +646,7 @@ const TabPaneTaskPending = ({
                         item
                         xs={12}>
                         <TimekeeperBase
+                            totalTime={timekeeper.totalTime}
                             handleStop={handleTimekeeperReset}
                             handlePause={handleTimekeeperPause}
                             handleReset={handleTimekeeperReset}
