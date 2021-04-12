@@ -11,6 +11,7 @@ import LayoutBase from '../src/components/layout/base';
 import TabPanelTasks from '../src/components/tabPanel/tasks';
 import TabPanelPerformance from '../src/components/tabPanel/performance';
 
+// global theme
 const theme = createMuiTheme({
     palette: {
         primary: {

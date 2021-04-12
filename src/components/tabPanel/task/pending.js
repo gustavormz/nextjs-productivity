@@ -146,6 +146,8 @@ const TabPaneTaskPending = ({
 
     const intervalTimekeeperReference = useRef(null);
 
+    // ALL FUNCTIONS RELATED WITH TIMEKEEPER BUTTONS
+
     function handleTimekeeperPause () {
         if (!intervalTimekeeperReference.current) {
             return;
@@ -194,6 +196,7 @@ const TabPaneTaskPending = ({
             }));
         }, 1000);
     }
+    // -----------------------------------------------//
 
     // useEffect to finish task when counter is 0
     useEffect(function () {
@@ -246,6 +249,7 @@ const TabPaneTaskPending = ({
         }
     }, [timekeeper.seconds]);
 
+    // useEffect to persist timekeeper info
     useEffect(function () {
         function persisteState () {
             const prevState = JSON.parse(localStorage.getItem(prevStateKey));
@@ -267,6 +271,7 @@ const TabPaneTaskPending = ({
         };
     }, []);
 
+    // useEffect to request tasks data each tab change
     useEffect(function () {
         async function fetchData () {
             setState({
@@ -294,6 +299,7 @@ const TabPaneTaskPending = ({
         fetchData();
     }, [callapi]);
 
+    // select duration filter change
     function handleSelectTaskDuration (event) {
         const selectValue = getValueFromEvent(event);
         setState({
@@ -302,6 +308,7 @@ const TabPaneTaskPending = ({
         });
     }
 
+    // open dialog to create task
     function handleNewTaskButtonClick () {
         setState({
             ...state,
@@ -309,6 +316,7 @@ const TabPaneTaskPending = ({
         });
     }
 
+    // handle close dialog for create dialog
     function handleDialogTaskCreateClose () {
         setState({
             ...state,
@@ -316,6 +324,7 @@ const TabPaneTaskPending = ({
         });
     }
 
+    // send request to create task
     async function handleDialogTaskCreateFormSubmit (values) {
         setState({
             ...state,
@@ -380,6 +389,7 @@ const TabPaneTaskPending = ({
         });
     }
 
+    // handle drag event
     async function onDragEnd (result) {
         // dropped outside the list or doesnt position change
         if (!result.destination
@@ -441,6 +451,7 @@ const TabPaneTaskPending = ({
         }
     }
 
+    // open confirm task delete dialog
     function handleDeleteTaskClick (task) {
         setState({
             ...state,
@@ -456,6 +467,7 @@ const TabPaneTaskPending = ({
         });
     }
 
+    // handle dialog delete confirm response
     async function handleDialogTaskDeleteConfirm () {
         setState({
             ...state,
@@ -486,6 +498,7 @@ const TabPaneTaskPending = ({
         });
     }
 
+    // request to update task
     async function handleDialogTaskEditFormSubmit (values) {
         setState({
             ...state,
@@ -550,6 +563,7 @@ const TabPaneTaskPending = ({
         });
     }
 
+    // open dialog to edit task
     function handleEditTaskClick (task) {
         setState({
             ...state,
@@ -558,6 +572,7 @@ const TabPaneTaskPending = ({
         });
     }
 
+    // handle dialog finish response
     async function handleFinishTaskClick (task) {
         localStorage.clear();
         setState({
@@ -594,14 +609,17 @@ const TabPaneTaskPending = ({
         handleTimekeeperStop();
     }
 
+    // start task
     function handleStartTask (task) {
-        const initialSeconds = getTimeByTask(task)
+        const initialSeconds = getTimeByTask(task);
         setCurseTask(task);
+        // initialize timekeeper
         setTimekeeper({
             ...timekeeper,
             seconds: initialSeconds,
             totalTime: initialSeconds
         });
+        // play timekeeper
         handleTimekeeperResume();
     }
 
@@ -639,7 +657,9 @@ const TabPaneTaskPending = ({
             <Grid
                 spacing={2}
                 container>
-                { (curseTask) && (
+                { (curseTask &&
+                    tasks.pendingOrdered &&
+                    tasks.pendingOrdered.length > 0) && (
                     <Grid
                         justify={'center'}
                         container

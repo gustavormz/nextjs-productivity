@@ -26,6 +26,7 @@ const LinkTab = props => (
 );
 
 const TabPaneTasks = props => {
+    // manage tab active in Task tab, the tabs are: PENDING and FINISHED
     const [tabActive, setTabActive] = useState(0);
 
     function handleTabChange (event, index) {

@@ -3,11 +3,13 @@ import db from '../../../lib/db';
 import validation from '../../../lib/validation/duration';
 import utils from '../../../lib/utils';
 
+// format time to display label
 const formatTime = ({
     minutes,
     seconds
 }) => `(${minutes} minutos${seconds ? `, ${seconds} segundos` : ``})`;
 
+// format duration data to create
 const formatDurationCreateData = data => {
     const timestamp = data.timestamp || Date.now();
     return {
@@ -18,6 +20,7 @@ const formatDurationCreateData = data => {
     };
 };
 
+// format entire array of durations to display in a select
 const formatDurationsArray = durations => durations.reduce((newArray, duration) => {
     const durationFormated = {
         ...duration,
@@ -27,6 +30,7 @@ const formatDurationsArray = durations => durations.reduce((newArray, duration) 
     return newArray;
 }, []);
 
+// create duration in database dynamodb
 const createDuration = async duration => {
     try {
         const requestBodyValidated = validation.validateCreate(formatDurationCreateData(duration));
@@ -43,6 +47,7 @@ const createDuration = async duration => {
     }
 };
 
+// query to database to get durations depends of params
 const getDurationsByParams = async _params => {
     try {
         const params = {

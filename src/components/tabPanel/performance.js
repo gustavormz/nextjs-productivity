@@ -55,6 +55,7 @@ const TabPanePerformance = ({
     const [intialDate, setInitialDate] = useState(new Date());
     const [endDate, setEndDate] = useState(new Date());
 
+    // get data to plot charts
     useEffect(function () {
         async function fetchData () {
             setState({
@@ -64,6 +65,7 @@ const TabPanePerformance = ({
             const query = `?dayStart=${getFormatDate(intialDate)}&dayEnd=${getFormatDate(endDate)}&type=BAR_DAY_TASK`;
             const tasks = await  (await fetch (`${baseApiUrl}/performance${query}`)).json();
 
+            // format x and y axis
             const barChart = {
                 xTickFormat: getXTicKFormat(tasks.data, mapDayWeekDay),
                 xTickValues: getXTickValues(tasks.data)

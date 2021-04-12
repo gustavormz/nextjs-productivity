@@ -18,6 +18,7 @@ import {
 const getTwoDigitsFormat = number =>
     number < 10 ? `0${number}` : number;
 
+// format time to display
 const formatTime = seconds => {
     const hours = Math.floor(seconds / 60 / 60);
     const minutes = Math.floor((seconds - (hours * 60 * 60)) / 60);

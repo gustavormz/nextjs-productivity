@@ -28,6 +28,7 @@ const TabPaneTaskFinished = ({
         tasks: undefined
     });
 
+    // get all finished tasks
     useEffect(function () {
         async function fetchData () {
             setState({

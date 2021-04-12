@@ -2,6 +2,7 @@ import db from '../../../lib/db';
 import utils from '../../../lib/utils';
 import validation from '../../../lib/validation/task';
 
+// delete task from the database
 const deleteTask = async id => {
     try {
         const params = {
@@ -18,6 +19,7 @@ const deleteTask = async id => {
     }
 };
 
+// update task in database
 const updateTask = async (id, dataToUpdate) => {
     try {
         const dataValidated = validation.validateUpdate(dataToUpdate);
@@ -52,6 +54,7 @@ const updateTask = async (id, dataToUpdate) => {
     }
 };
 
+// change task status from pending to finish
 const finishTask = async (id, {
     spentTime
 }) => {
@@ -85,6 +88,7 @@ const finishTask = async (id, {
     }
 };
 
+// remove task from array using id
 const removeTaskByIdFromArray = (_tasks, idTask) => {
     let indexToDelete = -1;
     const tasks = [..._tasks];
@@ -98,6 +102,7 @@ const removeTaskByIdFromArray = (_tasks, idTask) => {
     return tasks;
 };
 
+// get item from database using a key
 const getByKey = async Key => {
     try {
         const params = {
@@ -112,6 +117,7 @@ const getByKey = async Key => {
     }
 };
 
+// update pending order list in database
 const updateTaskOrderList = async orderedList => {
     try {
         const Key = {
@@ -141,6 +147,7 @@ const updateTaskOrderList = async orderedList => {
     }
 };
 
+// get tasks ordered by duration type
 const getOrderedTask = tasks => tasks.reduce((tasksObject, task) => {
     const taskDurationSeconds = task.minutes * 60 + (task.seconds ? task.seconds : 0);
 
@@ -158,6 +165,8 @@ const getOrderedTask = tasks => tasks.reduce((tasksObject, task) => {
     pendingMedium: [],
     pendingShort: []
 });
+
+// update task in array using id
 
 const updateTaskByIdFromArray = (_tasks, idTask, newData) => {
     const tasks = [..._tasks];
@@ -271,7 +280,8 @@ const handler = async ({
                 });
                 statusResponseCode = 201;
             } else if (query.hasOwnProperty('status') &&
-                query.hasOwnProperty('id')) {
+                query.hasOwnProperty('id')) { // finish task
+
                 const updateResponse  = await finishTask(query.id);
                 response = utils.constructSuccessResponse({
                     type: `TASK_FINISHED`,

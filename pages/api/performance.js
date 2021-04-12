@@ -1,29 +1,23 @@
 import db from '../../lib/db';
 import utils from '../../lib/utils';
 
-const MAP_DAY_WEEK_DAY = [
-    'Domingo',
-    'Lunes',
-    'Martes',
-    'Miércoles',
-    'Jueves',
-    'Viernes',
-    'Sábado'
-];
-
+// get number in 2 digits format to display
 const getNumberInTwoDigits = number => number < 10 ?
     `0${number}`:
     number;
 
+// get formated date using a date object
 const getFormatDateByDate = date =>
     `${date.getFullYear()}/${getNumberInTwoDigits(date.getMonth() + 1)}/${getNumberInTwoDigits(date.getDate())}`;
 
+// get just seconds from minutes and seconds
 const getSecondsFromMinutesSeconds = ({
     minutes,
     seconds
 }) =>
     minutes * 60 + (seconds || 0);
 
+// convert tasks array into object where the key is the day formated
 const getTasksSplitByDay = tasks => tasks.reduce((tasksSplitByDay, task) => {
     const date = new Date(task.timestamp);
     const dateFormated = getFormatDateByDate(date); //FORMAT YYYY/MM/DD
@@ -52,6 +46,7 @@ const getTasksSplitByDay = tasks => tasks.reduce((tasksSplitByDay, task) => {
 
 const objectToArray = object => Object.values(object);
 
+// get tasks from database using a query
 const getTasksByParams = async _params => {
     try {
         const params = {
@@ -66,6 +61,7 @@ const getTasksByParams = async _params => {
     }
 };
 
+// get tasks between range from database 
 const getTasksByRangeDates = async (dayStartMilliseconds, dayEndMilliseconds) => {
     try {
         const KeyConditionExpression = '#type = :type AND #timestamp BETWEEN :startMilliseconds AND :endMilliseconds';

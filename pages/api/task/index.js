@@ -6,6 +6,8 @@ import validationDuration from '../../../lib/validation/duration';
 import utils from '../../../lib/utils';
 import initialDurations from '../duration/durations.json';
 
+// format tasks data to save in database
+
 const formatTaskCreateData = data => {
     const timestamp = data.timestamp || Date.now();
     return {
@@ -16,6 +18,8 @@ const formatTaskCreateData = data => {
     };
 };
 
+// format duration data to save in database
+
 const formatDurationCreateData = data => {
     const timestamp = data.timestamp || Date.now();
     return {
@@ -25,6 +29,8 @@ const formatDurationCreateData = data => {
         value: timestamp
     };
 };
+
+// create task in database
 
 const createTask = async (task, isValidate = true) => {
     try {
@@ -46,6 +52,7 @@ const createTask = async (task, isValidate = true) => {
     }
 };
 
+// query in database using params
 const getTasksByParams = async _params => {
     try {
         const params = {
@@ -60,6 +67,8 @@ const getTasksByParams = async _params => {
     }
 };
 
+// get item from database by key
+
 const getByKey = async Key => {
     try {
         const params = {
@@ -73,6 +82,8 @@ const getByKey = async Key => {
         utils.constructCustomErrorByType('GETTING_TASK');
     }
 };
+
+// get tasks ordered by duration type
 
 const getOrderedTask = tasks => tasks.reduce((tasksObject, task) => {
     const taskDurationSeconds = task.minutes * 60 + (task.seconds ? task.seconds : 0);
@@ -91,6 +102,8 @@ const getOrderedTask = tasks => tasks.reduce((tasksObject, task) => {
     pendingMedium: [],
     pendingShort: []
 });
+
+// update list of pending task to persist order
 
 const updateTaskOrderList = async orderedList => {
     try {
@@ -121,6 +134,7 @@ const updateTaskOrderList = async orderedList => {
     }
 };
 
+// create duration in database
 const createDuration = async duration => {
     try {
         const requestBodyValidated = validationDuration.validateCreate(formatDurationCreateData(duration));
@@ -137,6 +151,7 @@ const createDuration = async duration => {
     }
 };
 
+// get all durations from database
 const getDurations = async () => {
     try {
         const KeyConditionExpression = "#type = :type";
@@ -167,10 +182,14 @@ const getDurations = async () => {
     }
 };
 
+// subtract days from date variable
+
 const subtractDaysFromDate = (dateMilliseconds, daysToSubtract) => {
     let date = new Date(dateMilliseconds);
     return date.setDate(date.getDate() - daysToSubtract);
 };
+
+// convert minutes and seconds in just seconds
 
 const getSecondsFromMinutesSeconds = ({
     minutes,
@@ -178,9 +197,11 @@ const getSecondsFromMinutesSeconds = ({
 }) =>
     minutes * 60 + (seconds || 0);
 
+// get random value between ranges
 const getRandomValueBetweenRange = (max, min) => 
     Math.floor(Math.random() * (max - min + 1)) + min;
 
+// get random duration attributes to set in a task
 const getRandomDurationForTask = (
     durations,
     startMilliseconds,
@@ -201,6 +222,7 @@ const getRandomDurationForTask = (
     };
 };
 
+// generate random tasks data, depends of numberItems
 const generateRandomData = (numberItems, durations) => {
     // obtain range timestamps
     const currentTimeMilliseconds = new Date().getTime();
@@ -222,6 +244,7 @@ const generateRandomData = (numberItems, durations) => {
     return tasks;
 };
 
+// get all tasks from database
 const getTasks = async () => {
     try {
         // check if there are durations
@@ -270,6 +293,7 @@ const handler = async ({
 
     try {
         if (method === 'GET') {
+            // get all tasks
             if (_.isEmpty(query) && _.isEmpty(body)) {
                 const tasks = await getTasks();
                 response = utils.constructSuccessResponse({
@@ -277,7 +301,7 @@ const handler = async ({
                     data: tasks
                 });
                 statusResponseCode = 200;
-            } else if (query.hasOwnProperty('status')) {
+            } else if (query.hasOwnProperty('status')) { // get tasks by status: pending or finished
                 const KeyConditionExpression = "#type = :type";
                 const FilterExpression = `#status = :status`;
                 const ExpressionAttributeNames = {
