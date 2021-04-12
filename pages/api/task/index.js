@@ -178,21 +178,19 @@ const getSecondsFromMinutesSeconds = ({
 }) =>
     minutes * 60 + (seconds || 0);
 
-const getRandomValueBetweenRange = (max, min) =>
-    Math.floor(Math.random() * (max - min + 1)) + min;;
+const getRandomValueBetweenRange = (max, min) => 
+    Math.floor(Math.random() * (max - min + 1)) + min;
 
 const getRandomDurationForTask = (
     durations,
     startMilliseconds,
     endMilliseconds
 ) => {
-    console.log(`duraciones verlas`, durations);
     const randomTimestamp = getRandomValueBetweenRange(startMilliseconds, endMilliseconds);
     const randomDurationIndex = Math.floor(Math.random() * durations.length);
-    console.log(`index random`, randomDurationIndex);
     const duration = durations[randomDurationIndex];
     const durationSeconds = getSecondsFromMinutesSeconds(duration);
-    const randomSpentTime = getRandomValueBetweenRange(durationSeconds * 80, durationSeconds);;
+    const randomSpentTime = getRandomValueBetweenRange(durationSeconds, Math.round(durationSeconds * .80));
 
     return {
         duration: duration.timestamp, // random duration
@@ -207,9 +205,6 @@ const generateRandomData = (numberItems, durations) => {
     // obtain range timestamps
     const currentTimeMilliseconds = new Date().getTime();
     const oneWeekAgoMilliseconds = subtractDaysFromDate(currentTimeMilliseconds, 7);
-
-    console.log(`valores para rangear`);
-    console.log(oneWeekAgoMilliseconds, currentTimeMilliseconds);
 
     const tasks = [];
 
@@ -246,13 +241,10 @@ const getTasks = async () => {
             ExpressionAttributeValues
         });
 
-        console.log(`respuesta de las tareas`, tasksByStatusResponse);
-
         // if there is not tasks create 50
         if (!tasksByStatusResponse ||
             tasksByStatusResponse.Count === 0) {
-            console.log('creando tareas');
-            const dataGenerated = generateRandomData(10, durations);
+            const dataGenerated = generateRandomData(50, durations);
 
             // save in database each task
             await Promise.all(dataGenerated.map(async task => {
@@ -323,21 +315,23 @@ const handler = async ({
                 timestamp: 1
             };
             const {
-                Item
+                Item: _Item
             } = await getByKey(Key);
 
-            Item.list.push(newTask);
+            const Item = _Item ? _Item.list : [];
+
+            Item.push(newTask);
 
             // update the list
-            await updateTaskOrderList(Item.list);
+            await updateTaskOrderList(Item);
 
             response = utils.constructSuccessResponse({
                 type: `TASK_CREATED`,
                 data: {
                     itemAdded: newTask,
                     lists: {
-                        ...getOrderedTask(Item.list),
-                        pendingOrdered: Item.list
+                        ...getOrderedTask(Item),
+                        pendingOrdered: Item
                     }
                 }
             });

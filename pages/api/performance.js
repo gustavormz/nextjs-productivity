@@ -18,6 +18,12 @@ const getNumberInTwoDigits = number => number < 10 ?
 const getFormatDateByDate = date =>
     `${date.getFullYear()}/${getNumberInTwoDigits(date.getMonth() + 1)}/${getNumberInTwoDigits(date.getDate())}`;
 
+const getSecondsFromMinutesSeconds = ({
+    minutes,
+    seconds
+}) =>
+    minutes * 60 + (seconds || 0);
+
 const getTasksSplitByDay = tasks => tasks.reduce((tasksSplitByDay, task) => {
     const date = new Date(task.timestamp);
     const dateFormated = getFormatDateByDate(date); //FORMAT YYYY/MM/DD
@@ -29,10 +35,16 @@ const getTasksSplitByDay = tasks => tasks.reduce((tasksSplitByDay, task) => {
             tasks: [],
             value: 1,
             dayOfWeek: date.getDay(),
-            dateFormated
+            dateFormated,
+            totalPosibleTimeSeconds: 0,
+            totalSpentTime: 0,
+            x: 0,
+            y: 0
         };
     }
 
+    tasksSplitByDay[dateFormated].totalSpentTime += task.spentTime;
+    tasksSplitByDay[dateFormated].totalPosibleTimeSeconds += getSecondsFromMinutesSeconds(task);
     tasksSplitByDay[dateFormated].tasks.push(task);
 
     return tasksSplitByDay;
@@ -143,6 +155,9 @@ const handler = async ({
             switch (query.type) {
                 case 'BAR_DAY_TASK':
                     data = objectToArray(getTasksSplitByDay(dynamoResponse));
+                    break;
+                case 'BAR_SPENT_TIME':
+                    data = [];
                     break;
                 default:
                     break;

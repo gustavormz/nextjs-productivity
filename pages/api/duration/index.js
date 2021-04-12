@@ -96,7 +96,7 @@ const handler = async ({
         } else if (method === 'POST') { //create duration
             //validate request body
             const bodyObject = JSON.parse(body);
-            const requestBodyValidated = await createDuration(bodyObject);
+            const requestBodyValidated = await createDuration(bodyObject, true);
 
             // get all durations to return the newest values
             const KeyConditionExpression = "#type = :type";

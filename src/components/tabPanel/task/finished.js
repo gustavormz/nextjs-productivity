@@ -11,6 +11,7 @@ import {
 import ListItemTask from '../../list/item/task';
 import PaperSimpleWrapperText from '../../paper/simpleWrapperText';
 import ButtonBase from '../../ui/button/base';
+import TypographyBase from '../../typography/base';
 
 const getDataFromDynamoResponse = dynamoResponse => dynamoResponse.error ?
     [] :
@@ -92,7 +93,11 @@ const TabPaneTaskFinished = ({
                         </>
                 ) }
                 { !state.tasks && (
-                    <p>Skeleton</p>
+                    <PaperSimpleWrapperText>
+                        <TypographyBase>
+                            No tienes tareas para mostrar
+                        </TypographyBase>
+                    </PaperSimpleWrapperText>
                 ) }
             </Grid>
         </div>

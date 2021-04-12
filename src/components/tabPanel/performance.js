@@ -15,6 +15,7 @@ import BarChart from '../chart/bar';
 import TypographyBase from '../typography/base';
 import DividerBase from '../divider/base';
 import PaperSimpleWrapperText from '../paper/simpleWrapperText';
+import BarChartDouble from '../chart/doubleBar';
 
 const getFormatDate = date => moment(date).format('YYYY/MM/DD');
 
@@ -23,6 +24,14 @@ const barChartYAxisTickFormat = value => value;
 const getXTickValues = tasks => tasks.map(task => task.dayOfWeek);
 
 const getXTicKFormat = (tasks, mapValueFormat) => tasks.map(task => mapValueFormat[task.dayOfWeek]);
+
+const getRelationSpentTimeRelatedWithAllAvailableTime = (tasks) => tasks.map(task => {
+    const spentTimePercentage = Math.round(100 / task.totalPosibleTimeSeconds * task.totalSpentTime);
+    return {
+        spentTimePercentage,
+        fullTime: 100
+    };
+});
 
 const TabPanePerformance = ({
     baseApiUrl,
@@ -164,8 +173,24 @@ const TabPanePerformance = ({
                                 margin: 0,
                                 textAlign: `center`
                             }}> 
-                            Porcentaje de tiempo para finalizar una tarea
+                            Porcentaje de tiempo empleado para resolver una tarea
                         </TypographyBase>
+                        { state.tasks && state.tasks.length > 0 ? (
+                            <BarChart
+                                yTickValues={[0, 20, 40, 60, 80, 100]}
+                                xTickFormat={state.barChart.xTickFormat}
+                                xTickValues={state.barChart.xTickValues}
+                                yTickFormat={barChartYAxisTickFormat}
+                                xKey={`dayOfWeek`}
+                                yKey={`spentTimePercentage`}
+                                data={getRelationSpentTimeRelatedWithAllAvailableTime(state.tasks)}/>
+                        ) : (
+                            <PaperSimpleWrapperText>
+                                <TypographyBase style={{ margin: 0, padding: 0 }}>
+                                    No tienes información para mostrar
+                                </TypographyBase>
+                            </PaperSimpleWrapperText>
+                        ) }
                     </Grid>
                 </Grid>
             </Grid>

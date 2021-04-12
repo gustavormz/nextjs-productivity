@@ -7,8 +7,7 @@ import {
 import {
     Grid,
     RootRef,
-    List,
-    Backdrop
+    List
 } from '@material-ui/core';
 import {
     DragDropContext,
@@ -27,6 +26,7 @@ import ListItemTask from '../../list/item/task';
 import DialogLoaderFullscreenCircular from '../../dialog/loader/fullscreenCircular';
 import DialogTaskDeleteConfirm from '../../dialog/task/delete';
 import DialogTaskUpdate from '../../dialog/task/edit';
+import TypographyBase from '../../typography/base';
 
 const getValueFromEvent = event => event.target.value;
 
@@ -759,7 +759,11 @@ const TabPaneTaskPending = ({
                         </>
                 ) }
                 { !tasks.pendingOrdered && (
-                    <p>Skeleton</p>
+                    <PaperSimpleWrapperText>
+                        <TypographyBase>
+                            No tienes tareas para mostrar
+                        </TypographyBase>
+                    </PaperSimpleWrapperText>
                 ) }
             </Grid>
         </div>

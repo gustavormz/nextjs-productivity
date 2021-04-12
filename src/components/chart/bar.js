@@ -12,7 +12,8 @@ const ChartBar = ({
     yKey,
     xTickValues,
     xTickFormat,
-    yTickFormat
+    yTickFormat,
+    yTickValues
 }) => (
     <VictoryChart
         theme={VictoryTheme.material}
@@ -28,6 +29,7 @@ const ChartBar = ({
                 tickLabels: {fontSize: 15, padding: 5}
             }}
             dependentAxis
+            tickValues={yTickValues}
             tickFormat={yTickFormat}/>
         <VictoryBar
             alignment={'start'}
