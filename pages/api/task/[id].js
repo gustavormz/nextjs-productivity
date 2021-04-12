@@ -179,9 +179,6 @@ const handler = async ({
     let response = ``;
 
     try {
-        console.log(`tratando de procesar`, query);
-        console.log(body);
-
         if (method === 'DELETE') {
             await deleteTask(query.id);
 
@@ -215,13 +212,9 @@ const handler = async ({
                 body &&
                 query.hasOwnProperty('status') &&
                 query.status === 'FINISH') {
-                
-                console.log('finzlizando');
 
                 const bodyObject = JSON.parse(body);
                 const updateResponse  = await finishTask(query.id, bodyObject);
-
-                console.log(updateResponse);
 
                 // get lastest tasks to update the task
                 const Key = {

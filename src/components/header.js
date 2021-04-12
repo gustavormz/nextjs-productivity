@@ -3,6 +3,7 @@ import {
 } from 'react';
 import {
     Grid,
+    Hidden,
     IconButton
 } from '@material-ui/core';
 import {
@@ -11,6 +12,8 @@ import {
 
 import AppBarBase from './appBar/base';
 import DrawerBase from './drawer/base';
+import Logo from './icon/logo';
+import TypographyBase from './typography/base';
 
 const Header = ({
     handleTabChange,
@@ -28,17 +31,54 @@ const Header = ({
     return (
         <AppBarBase>
             <Grid container spacing={1}>
-                <Grid item xs={4}>
-                    <IconButton onClick={toggleDrawer(true)}>
+                <Grid
+                    alignItems={'center'}
+                    container
+                    item xs={4}>
+                    <IconButton
+                        style={{
+                            color: `white`
+                        }}
+                        onClick={toggleDrawer(true)}>
                         <Menu />
                     </IconButton>
                 </Grid>
-                <Grid item xs={4}>
-    
-                </Grid>
-                <Grid item xs={4}>
-    
-                </Grid>
+                <Hidden mdDown>
+                    <Grid
+                        alignItems={'center'}
+                        container
+                        justify={`center`}
+                        item
+                        xs={4}>
+                        <Logo
+                            height={60}
+                            width={60}/>
+                    </Grid>
+                    <Grid
+                        container
+                        justify={`flex-end`}
+                        alignItems={`center`}
+                        item xs={4}>
+                        <TypographyBase style={{
+                            margin: 0,
+                            padding: 0
+                        }}>
+                            Bienvenido
+                        </TypographyBase>
+                    </Grid>
+                </Hidden>
+                <Hidden mdUp>
+                    <Grid
+                        alignItems={'center'}
+                        container
+                        justify={`flex-end`}
+                        item
+                        xs={8}>
+                        <Logo
+                            height={60}
+                            width={60}/>
+                    </Grid>
+                </Hidden>
             </Grid>
             <DrawerBase
                 handleTabChange={handleTabChange}

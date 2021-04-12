@@ -25,13 +25,18 @@ const getXTickValues = tasks => tasks.map(task => task.dayOfWeek);
 
 const getXTicKFormat = (tasks, mapValueFormat) => tasks.map(task => mapValueFormat[task.dayOfWeek]);
 
-const getRelationSpentTimeRelatedWithAllAvailableTime = (tasks) => tasks.map(task => {
-    const spentTimePercentage = Math.round(100 / task.totalPosibleTimeSeconds * task.totalSpentTime);
-    return {
-        spentTimePercentage,
-        fullTime: 100
-    };
-});
+const getRelationSpentTimeRelatedWithAllAvailableTime = tasks => {
+    const relationArray = [];
+    for (let task of tasks) {
+        const spentTimePercentage = Math.round(100 / task.totalPosibleTimeSeconds * task.totalSpentTime);
+        relationArray.push ({
+            spentTimePercentage,
+            fullTime: 100,
+            ...task
+        });
+    }
+    return relationArray;
+};
 
 const TabPanePerformance = ({
     baseApiUrl,
@@ -58,7 +63,7 @@ const TabPanePerformance = ({
             });
             const query = `?dayStart=${getFormatDate(intialDate)}&dayEnd=${getFormatDate(endDate)}&type=BAR_DAY_TASK`;
             const tasks = await  (await fetch (`${baseApiUrl}/performance${query}`)).json();
-            console.log(tasks);
+
             const barChart = {
                 xTickFormat: getXTicKFormat(tasks.data, mapDayWeekDay),
                 xTickValues: getXTickValues(tasks.data)
@@ -144,10 +149,8 @@ const TabPanePerformance = ({
                         </TypographyBase>
                         { state.tasks && state.tasks.length > 0 ? (
                             <BarChart
-                                xTickFormat={state.barChart.xTickFormat}
                                 xTickValues={state.barChart.xTickValues}
-                                yTickFormat={barChartYAxisTickFormat}
-                                xKey={`dayOfWeek`}
+                                xKey={`dateFormated`}
                                 yKey={`value`}
                                 data={state.tasks}/>
                         ) : (
@@ -173,15 +176,14 @@ const TabPanePerformance = ({
                                 margin: 0,
                                 textAlign: `center`
                             }}> 
-                            Porcentaje de tiempo empleado para resolver una tarea
+                            Porcentaje de tiempo empleado para resolver las tareas de un día
                         </TypographyBase>
                         { state.tasks && state.tasks.length > 0 ? (
                             <BarChart
+                                yTickFormat={value => `${value}%`}
                                 yTickValues={[0, 20, 40, 60, 80, 100]}
-                                xTickFormat={state.barChart.xTickFormat}
                                 xTickValues={state.barChart.xTickValues}
-                                yTickFormat={barChartYAxisTickFormat}
-                                xKey={`dayOfWeek`}
+                                xKey={`dateFormated`}
                                 yKey={`spentTimePercentage`}
                                 data={getRelationSpentTimeRelatedWithAllAvailableTime(state.tasks)}/>
                         ) : (

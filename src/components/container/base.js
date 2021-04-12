@@ -7,7 +7,7 @@ const styles = {
 	root: {
 		paddingTop: `15px`,
 		paddingBottom: `15px`,
-		minHeight: `57vh`
+		minHeight: `90vh`
 	}
 };
 

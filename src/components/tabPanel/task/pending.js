@@ -557,6 +557,7 @@ const TabPaneTaskPending = ({
     }
 
     async function handleFinishTaskClick (task) {
+        localStorage.clear();
         setState({
             ...state,
             finishTask: task,
@@ -748,7 +749,7 @@ const TabPaneTaskPending = ({
                         <>
                             <Grid item xs={12}>
                                 <PaperSimpleWrapperText>
-                                    Aún no tienes tareas
+                                    No tienes tareas pendientes
                                 </PaperSimpleWrapperText>
                             </Grid>
                             <Grid item xs={12}>

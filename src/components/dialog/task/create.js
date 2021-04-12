@@ -49,7 +49,6 @@ const DialogTaskCreate = ({
                     isValid,
                 }) => (
                     <form onSubmit={handleSubmit}>
-                        { console.log(errors) }
                         <Grid container spacing={2}>
                             <Grid item xs={12}>
                                 <FormTask

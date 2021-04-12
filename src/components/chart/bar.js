@@ -3,7 +3,8 @@ import {
     VictoryBar,
     VictoryChart,
     VictoryAxis,
-    VictoryTheme
+    VictoryTheme,
+    VictoryLabel
 } from 'victory';
 
 const ChartBar = ({
@@ -16,22 +17,39 @@ const ChartBar = ({
     yTickValues
 }) => (
     <VictoryChart
+        padding={{
+            left: 55,
+            right: 5,
+            top: 5,
+            bottom: 50
+        }}
+        style={{
+            fontSize: 10
+        }}
         theme={VictoryTheme.material}
         domainPadding={20}>
         <VictoryAxis
+            tickLabelComponent={<VictoryLabel angle={-45}/>}
             style={{
-                tickLabels: {fontSize: 15, padding: 5}
+                tickLabels: {
+                    fontSize: 11
+                }
             }}
             tickValues={xTickValues}
             tickFormat={xTickFormat}/>
         <VictoryAxis
+            
             style={{
-                tickLabels: {fontSize: 15, padding: 5}
+                tickLabels: {
+                    fontSize: 11
+                }
             }}
             dependentAxis
             tickValues={yTickValues}
             tickFormat={yTickFormat}/>
         <VictoryBar
+            horizontal
+            barRatio={0.8}
             alignment={'start'}
             barWidth={15}
             data={data}

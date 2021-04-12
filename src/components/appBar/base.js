@@ -6,7 +6,6 @@ import {
 
 const styles = {
     root: {
-        backgroundColor: 'white',
         paddingBottom: `2px`,
         paddingTop: `2px`
     }
@@ -17,7 +16,9 @@ const AppBarStyled = withStyles(styles)(AppBar);
 const AppBarBase = ({
     children
 }) => (
-    <AppBarStyled position={`static`}>
+    <AppBarStyled
+        color={'primary'}
+        position={`static`}>
         <Toolbar>
             { children }
         </Toolbar>
