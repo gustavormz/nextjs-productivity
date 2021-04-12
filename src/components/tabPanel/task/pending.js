@@ -752,8 +752,8 @@ const TabPaneTaskPending = ({
                                 </PaperSimpleWrapperText>
                             </Grid>
                             <Grid item xs={12}>
-                                <ButtonBase>
-                                    Agregar 50 tareas
+                                <ButtonBase onClick={handleNewTaskButtonClick}>
+                                    Agregar nueva
                                 </ButtonBase>
                             </Grid>
                         </>

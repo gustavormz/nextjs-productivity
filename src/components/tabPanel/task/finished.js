@@ -9,6 +9,8 @@ import {
 } from '@material-ui/core';
 
 import ListItemTask from '../../list/item/task';
+import PaperSimpleWrapperText from '../../paper/simpleWrapperText';
+import ButtonBase from '../../ui/button/base';
 
 const getDataFromDynamoResponse = dynamoResponse => dynamoResponse.error ?
     [] :

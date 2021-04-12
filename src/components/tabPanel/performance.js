@@ -55,7 +55,6 @@ const TabPanePerformance = ({
                 xTickValues: getXTickValues(tasks.data)
             };
 
-            console.log(barChart);
             setState({
                 ...state,
                 isRequesting: false,
@@ -182,13 +181,13 @@ TabPanePerformance.propTypes = {
 TabPanePerformance.defaultProps = {
     baseApiUrl: `/api`,
     mapDayWeekDay: [
-        'Domingo',
-        'Lunes',
-        'Martes',
-        'Miércoles',
-        'Jueves',
-        'Viernes',
-        'Sábado'
+        'Dom',
+        'Lun',
+        'Mar',
+        'Mie',
+        'Jue',
+        'Vie',
+        'Sab'
     ]
 };
 
