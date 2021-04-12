@@ -141,6 +141,7 @@ const TabPaneTaskPending = ({
         isActive: false,
         state: `STOP`
     });
+    const [curseTask, setCurseTask] = useState(undefined);
 
     const intervalTimekeeperReference = useRef(null);
 
@@ -159,7 +160,7 @@ const TabPaneTaskPending = ({
 
     function handleTimekeeperReset () {
         clearInterval(intervalTimekeeperReference.current);
-        const initialSeconds = getTimeByTask(state.curseTask);
+        const initialSeconds = getTimeByTask(curseTask);
         setTimekeeper({
             isActive: false,
             seconds: initialSeconds,
@@ -204,10 +205,10 @@ const TabPaneTaskPending = ({
             handleTimekeeperPause();
             const spentTimeSeconds = getSpentTime(task, timekeeper.seconds);
     
-            const response = await (await fetch (`${baseApiUrl}/task/${state.curseTask.timestamp}?status=FINISH`, {
+            const response = await (await fetch (`${baseApiUrl}/task/${curseTask.timestamp}?status=FINISH`, {
                 method: 'PUT',
                 body: JSON.stringify({
-                    ...state.curseTask,
+                    ...curseTask,
                     spentTime: spentTimeSeconds
                 })
             })).json();
@@ -219,35 +220,46 @@ const TabPaneTaskPending = ({
             setState({
                 ...state,
                 isRequesting: false,
-                curseTask: undefined,
                 finishTask: undefined
             });
+            setCurseTask(undefined);
         }
+
+        // save current time to persist timekeeper yet the user close tab
+        function saveCurrentTime () {
+            localStorage.setItem(prevStateKey, JSON.stringify({
+                timekeeper,
+                task: curseTask
+            }));
+        }
+
+        if (intervalTimekeeperReference.current) {
+            saveCurrentTime();
+        }
+
         if (intervalTimekeeperReference.current &&
                 timekeeper.seconds === 0) {
             handleTimekeeperStop();
-            finishTask(state.curseTask);
+            finishTask(curseTask);
         }
     }, [timekeeper.seconds]);
 
     useEffect(function () {
-        const previousState = JSON.parse(localStorage.getItem(prevStateKey));
-        console.log(previousState);
-        if (previousState && previousState.timekeeper) {
-            setState({
-                ...state,
-                curseTask: previousState.task
-            });
-            setTimekeeper(previousState.timekeeper);
+        function persisteState () {
+            const prevState = JSON.parse(localStorage.getItem(prevStateKey));
+            if (prevState && prevState.task) {
+                localStorage.clear();
+                setCurseTask(prevState.task);
+                setTimekeeper({
+                    ...timekeeper,
+                    ...prevState.timekeeper
+                });
+            }
         }
 
+        persisteState();
         return () => {
             if (intervalTimekeeperReference.current) {
-                console.log(state.curseTask);
-                localStorage.setItem(prevStateKey, JSON.stringify({
-                    timekeeper,
-                    task: state.curseTask
-                }));
                 clearInterval(intervalTimekeeperReference);
             }
         };
@@ -371,7 +383,7 @@ const TabPaneTaskPending = ({
         if (!result.destination
             || result.destination.index === result.source.index
             || intervalTimekeeperReference.current
-            || state.curseTask) {
+            || curseTask) {
             return;
         }
 
@@ -509,8 +521,6 @@ const TabPaneTaskPending = ({
                 ...getMInutesAndSecondsFromDurationsByDurationId(durations, values.duration)
             };
 
-            console.log(_values);
-
             const response = await (await fetch (`${baseApiUrl}/task/${values.timestamp}`, {
                 method: `PUT`,
                 body: JSON.stringify(_values)
@@ -556,10 +566,10 @@ const TabPaneTaskPending = ({
         handleTimekeeperPause();
         const spentTimeSeconds = getSpentTime(task, timekeeper.seconds);
 
-        const response = await (await fetch (`${baseApiUrl}/task/${state.curseTask.timestamp}?status=FINISH`, {
+        const response = await (await fetch (`${baseApiUrl}/task/${curseTask.timestamp}?status=FINISH`, {
             method: 'PUT',
             body: JSON.stringify({
-                ...state.curseTask,
+                ...curseTask,
                 spentTime: spentTimeSeconds
             })
         })).json();
@@ -571,24 +581,18 @@ const TabPaneTaskPending = ({
         setState({
             ...state,
             isRequesting: false,
-            curseTask: undefined,
             finishTask: undefined
         });
+        setCurseTask(undefined);
     }
 
     function handleTaskCancelClick (task) {
-        setState({
-            ...state,
-            curseTask: undefined
-        });
+        setCurseTask(undefined);
         handleTimekeeperStop();
     }
 
     function handleStartTask (task) {
-        setState({
-            ...state,
-            curseTask: task
-        });
+        setCurseTask(task);
         setTimekeeper({
             ...timekeeper,
             seconds: getTimeByTask(task)
@@ -630,7 +634,7 @@ const TabPaneTaskPending = ({
             <Grid
                 spacing={2}
                 container>
-                { (state.curseTask) && (
+                { (curseTask) && (
                     <Grid
                         justify={'center'}
                         container
@@ -651,7 +655,7 @@ const TabPaneTaskPending = ({
                     <SelectTaskDefaultDuration
                         disabled={
                             (intervalTimekeeperReference.current != null ||
-                            state.curseTask) ? true : false
+                            curseTask) ? true : false
                         }
                         value={state.selectTaskDurationValue || `ALL`}
                         onChange={handleSelectTaskDuration}/>
@@ -663,7 +667,7 @@ const TabPaneTaskPending = ({
                     <ButtonSecondary
                         disabled={
                             (intervalTimekeeperReference.current != null ||
-                            state.curseTask) ? true : false
+                            curseTask) ? true : false
                         }
                         onClick={handleNewTaskButtonClick}>
                         Agregar Nueva Tarea
@@ -692,18 +696,18 @@ const TabPaneTaskPending = ({
                                                         <ListItemTask
                                                             handleStart={
                                                                 (index === 0 &&
-                                                                    !state.curseTask) ?
+                                                                    !curseTask) ?
                                                                 handleStartTask :
                                                                 null
                                                             }
                                                             handleFinishTask={(index === 0 &&
-                                                                state.curseTask &&
+                                                                curseTask &&
                                                                 timekeeper.state !== 'RESET') ?
                                                                 handleFinishTaskClick :
                                                                 null
                                                             }
                                                             handleEditClick={
-                                                                state.curseTask ?
+                                                                curseTask ?
                                                                     null :
                                                                     handleEditTaskClick
                                                             }
@@ -714,7 +718,7 @@ const TabPaneTaskPending = ({
                                                             }
                                                             handleCancel={
                                                                 (index === 0 &&
-                                                                    state.curseTask) ?
+                                                                    curseTask) ?
                                                                 handleTaskCancelClick :
                                                                 null
                                                             }
