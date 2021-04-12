@@ -105,7 +105,7 @@ const getSpentTime = (task, finalTime) => getSecondsByMinutesAndSeconds(task) - 
 
 const TabPaneTaskPending = ({
     baseApiUrl,
-    callApi,
+    callapi,
     prevStateKey,
     ...props
 }) => {
@@ -278,7 +278,7 @@ const TabPaneTaskPending = ({
         }
 
         fetchData();
-    }, [callApi]);
+    }, [callapi]);
 
     function handleSelectTaskDuration (event) {
         const selectValue = getValueFromEvent(event);
@@ -764,7 +764,7 @@ const TabPaneTaskPending = ({
 
 TabPaneTaskPending.propTypes = {
     baseApiUrl: PropTypes.string,
-    callApi: PropTypes.bool,
+    callapi: PropTypes.bool,
     prevStateKey: PropTypes.string
 };
 

@@ -16,7 +16,7 @@ const getDataFromDynamoResponse = dynamoResponse => dynamoResponse.error ?
 
 const TabPaneTaskFinished = ({
     baseApiUrl,
-    callApi,
+    callapi,
     ...props
 }) => {
     const [state, setState] = useState({
@@ -46,7 +46,7 @@ const TabPaneTaskFinished = ({
             });
         }
         fetchData();
-    }, [callApi]);
+    }, [callapi]);
 
     return (
         <div
@@ -99,7 +99,7 @@ const TabPaneTaskFinished = ({
 
 TabPaneTaskFinished.propTypes = {
     baseApiUrl: PropTypes.string,
-    callApi: PropTypes.bool
+    callapi: PropTypes.bool
 };
 
 TabPaneTaskFinished.defaultProps = {

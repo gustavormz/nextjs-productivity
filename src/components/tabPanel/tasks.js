@@ -62,13 +62,13 @@ const TabPaneTasks = props => {
                     </TabsBase>
                 </Grid>
                 <TabPanelTaskPending
-                    callApi={tabActive === 0}
+                    callapi={tabActive === 0}
                     role="tabpanel"
                     hidden={tabActive !== 0}
                     id={`nav-tabpanel-0`}
                     aria-labelledby={`nav-tab-0`}/>
                 <TabPanelTaskFinished
-                    callApi={tabActive === 1}
+                    callapi={tabActive === 1}
                     role={'tabpanel'}
                     hidden={tabActive !== 1}
                     id={`nav-tabpanel-1`}

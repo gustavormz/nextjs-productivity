@@ -27,13 +27,11 @@ const Home = () => {
             maxWidth={'md'}>
             <Head />
             <TabPanelTasks
-                callApi={state.drawerTabActive === 0}
                 role="tabpanel"
                 hidden={state.drawerTabActive !== 0}
                 id={`drawer-nav-tabpanel-0`}
                 aria-labelledby={`drawer-nav-tab-0`}/>
             <TabPanelPerformance
-                callApi={state.drawerTabActive === 1}
                 role="tabpanel"
                 hidden={state.drawerTabActive !== 1}
                 id={`drawer-nav-tabpanel-1`}

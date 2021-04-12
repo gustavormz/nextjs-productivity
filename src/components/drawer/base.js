@@ -25,7 +25,7 @@ const LinkTab = ({
 const linkTabProps = index => ({
     id: `drawer-nav-tab-${index}`,
     'aria-controls': `drawer-nav-tabpanel-${index}`,
-    tabindex: `"${index}"`
+    tabIndex: `"${index}"`
 });
 
 const DrawerBase = ({
@@ -46,6 +46,7 @@ const DrawerBase = ({
             onChange={handleTabChange}>
             { drawerOptionsArray.map((drawerOption, index) => (
                 <LinkTab
+                    key={drawerOption.path}
                     icon={drawerOption.icon}
                     option={drawerOption}
                     { ...linkTabProps (index) }
