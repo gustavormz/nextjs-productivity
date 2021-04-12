@@ -14,6 +14,7 @@ import DialogLoaderFullscreenCircular from '../dialog/loader/fullscreenCircular'
 import BarChart from '../chart/bar';
 import TypographyBase from '../typography/base';
 import DividerBase from '../divider/base';
+import PaperSimpleWrapperText from '../paper/simpleWrapperText';
 
 const getFormatDate = date => moment(date).format('YYYY/MM/DD');
 
@@ -86,7 +87,11 @@ const TabPanePerformance = ({
                 spacing={4}>
                 <Grid item xs={12}/>
                 <Grid item xs={12}>
-                    <TypographyTitle>
+                    <TypographyTitle
+                        style={{
+                            fontWeight: `bold`,
+                            margin: 0
+                        }}>
                         Rendimiento
                     </TypographyTitle>
                 </Grid>
@@ -121,7 +126,12 @@ const TabPanePerformance = ({
                         <DividerBase />
                     </Grid>
                     <Grid item xs={12}>
-                        <TypographyBase style={{ margin: 0, textAlign: `center` }}>
+                        <TypographyBase
+                            style={{
+                                fontWeight: `bold`,
+                                margin: 0,
+                                textAlign: `center`
+                            }}>
                             Tareas completadas por día
                         </TypographyBase>
                         { state.tasks && state.tasks.length > 0 ? (
@@ -133,7 +143,11 @@ const TabPanePerformance = ({
                                 yKey={`value`}
                                 data={state.tasks}/>
                         ) : (
-                            <p>No tienes informacion para mostrar</p>
+                            <PaperSimpleWrapperText>
+                                <TypographyBase style={{ margin: 0, padding: 0 }}>
+                                    No tienes información para mostrar
+                                </TypographyBase>
+                            </PaperSimpleWrapperText>
                         ) }
                     </Grid>
                 </Grid>
@@ -145,7 +159,12 @@ const TabPanePerformance = ({
                         <DividerBase />
                     </Grid>
                     <Grid item xs={12}>
-                        <TypographyBase style={{ margin: 0, textAlign: `center` }}> 
+                        <TypographyBase
+                            style={{
+                                fontWeight: `bold`,
+                                margin: 0,
+                                textAlign: `center`
+                            }}> 
                             Porcentaje de tiempo para finalizar una tarea
                         </TypographyBase>
                     </Grid>

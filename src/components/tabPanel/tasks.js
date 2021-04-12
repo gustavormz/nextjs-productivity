@@ -42,12 +42,17 @@ const TabPaneTasks = props => {
             <Grid container spacing={4}>
                 <Grid item xs={12}/>
                 <Grid item xs={12}>
-                    <TypographyTitle>
+                    <TypographyTitle
+                        style={{
+                            fontWeight: `bold`,
+                            margin: 0
+                        }}>
                         Tareas
                     </TypographyTitle>
                 </Grid>
                 <Grid item xs={12}>
                     <TabsBase
+                        color={'primary'}
                         onChange={handleTabChange}
                         value={tabActive}
                         centered>

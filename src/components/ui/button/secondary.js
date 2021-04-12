@@ -29,6 +29,7 @@ const ButtonSecondary = withStyles(styles)(({
     ...props
 }) => (
     <Button
+        color={'primary'}
         variant={`outlined`}
         { ...props }>
         { children }

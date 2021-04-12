@@ -38,8 +38,7 @@ const styles = theme => ({
 			paddingBottom: `8px`
 		},
 		padding: 0,
-		paddingBottom: `15px`,
-		fontFamily: `Century-normal, serif`
+		paddingBottom: `15px`
 	},
 	body2: {
 		fontSize: `0.9rem`,
@@ -48,24 +47,21 @@ const styles = theme => ({
 			paddingBottom: `8px`
 		},
 		padding: 0,
-		paddingBottom: `15px`,
-		fontFamily: `Century-normal, serif`
+		paddingBottom: `15px`
 	},
 	subtitle1: {
 		[theme.breakpoints.down('sm')]: {
 			paddingBottom: `8px`
 		},
 		padding: 0,
-		paddingBottom: `15px`,
-		fontFamily: `Century, serif`
+		paddingBottom: `15px`
 	},
 	caption: {
 		[theme.breakpoints.down('sm')]: {
 			paddingBottom: `8px`
 		},
 		padding: 0,
-		paddingBottom: `15px`,
-		fontFamily: `Century, serif`
+		paddingBottom: `15px`
 	}
 });
 

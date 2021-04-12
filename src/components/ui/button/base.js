@@ -21,6 +21,16 @@ const styles = theme => ({
     }
 });
 
-const ButtonBase = withStyles(styles)(Button);
+const ButtonBase = withStyles(styles)(({
+    children,
+    ...props
+}) => (
+    <Button
+        variant={'contained'}
+        color={'primary'}
+        { ...props }>
+        { children }
+    </Button>
+));
 
 export default ButtonBase;

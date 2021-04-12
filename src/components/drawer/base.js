@@ -7,14 +7,14 @@ import {
     Equalizer
 } from '@material-ui/icons';
 
-import TabBase from '../tab/base';
-import TabsBase from '../tabs/base';
+import TabDrawer from '../tab/drawer';
+import TabsDrawer from '../tabs/drawer';
 
 const LinkTab = ({
     option,
     ...props
 }) => (
-    <TabBase
+    <TabDrawer
         { ...props }
         component={'a'}
         onClick={event => {
@@ -40,7 +40,7 @@ const DrawerBase = ({
         open={open}
         onClose={onClose}
         onOpen={onOpen}>
-        <TabsBase
+        <TabsDrawer
             orientation={'vertical'}
             value={tabActive}
             onChange={handleTabChange}>
@@ -53,7 +53,7 @@ const DrawerBase = ({
                     href={drawerOption.path}
                     label={drawerOption.text}/>
             )) }
-        </TabsBase>
+        </TabsDrawer>
     </SwipeableDrawer>
 );
 

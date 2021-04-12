@@ -17,9 +17,7 @@ import {
     Delete
 } from '@material-ui/icons';
 
-import PaperTaskStatus from '../../paper/task/status';
 import ListItemIconTask from '../item/icon/task';
-import ButtonTaskStart from '../../ui/button/task/start';
 
 const styles = theme => ({
     secondaryAction: {
@@ -62,6 +60,8 @@ const ListItemTask = ({
     ...props
 }) => (
     <ListItemStyled
+        divider={true}
+        color={'primary'}
         onClick={handleEditClick ?
             () => handleEditClick(task) :
             null
@@ -70,7 +70,10 @@ const ListItemTask = ({
         <Hidden mdUp>
             <ListItemIconTask>
                 <Tooltip title={'Estado'}>
-                    <Avatar>
+                    <Avatar
+                        style={{
+                            backgroundColor: `#428488`
+                        }}>
                         {task.title[0]}
                     </Avatar>
                 </Tooltip>
@@ -79,7 +82,9 @@ const ListItemTask = ({
         <Hidden mdDown>
             <ListItemAvatar>
                 <Tooltip title={`Tipo de duración`}>
-                    <Avatar>
+                    <Avatar style={{
+                            backgroundColor: `#428488`
+                        }}>
                         {task.title[0]}
                     </Avatar>
                 </Tooltip>

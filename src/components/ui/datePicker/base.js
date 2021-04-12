@@ -46,12 +46,12 @@ const pickerTheme = createMuiTheme({
     overrides: {
         MuiPickersToolbar: {
             toolbar: {
-              backgroundColor: lightBlue.A200,
+              backgroundColor: '#07575b',
             },
         },
         MuiPickersDay: {
             daySelected: {
-              backgroundColor: lightBlue["400"],
+              backgroundColor: '#428488',
             },
             dayDisabled: {
               color: lightBlue["100"],

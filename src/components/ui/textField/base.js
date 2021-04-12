@@ -19,6 +19,7 @@ const styles = theme => ({
 
 const TextFieldBase = withStyles(styles)((props) => (
     <TextField
+        color={'primary'}
         { ...props }
         size={`small`}
         variant={`outlined`} />
