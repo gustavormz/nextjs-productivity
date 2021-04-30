@@ -21,5 +21,12 @@
         "value": 1617907768000,
         "seconds": 0,
         "minutes": 60
+    }, {
+        "type": "duration",
+        "timestamp": 1617907768000,
+        "label": "Larga",
+        "value": 1617907768000,
+        "seconds": 0,
+        "minutes": 600
     }
 ]
